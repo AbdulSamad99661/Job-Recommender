@@ -799,4 +799,948 @@
     font-size: 0.7rem;
     padding: 3px 8px;
   }
+
+  .nav-item {
+    padding: 10px 14px;
+    font-size: 0.88rem;
+  }
 }
+
+/* -------------------------------------------------------------------------- */
+/* ABOUT / HOW IT WORKS TAB RESPONSIVE STYLES                                 */
+/* -------------------------------------------------------------------------- */
+
+.about-wrapper {
+  max-width: 920px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.about-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.about-badge {
+  margin-bottom: 10px;
+}
+
+.about-title {
+  font-size: 1.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.about-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+.about-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-bottom: 36px;
+  width: 100%;
+}
+
+.about-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  width: 100%;
+}
+
+.about-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
+}
+
+.about-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.about-card-icon.icon-indigo {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.about-card-icon.icon-cyan {
+  background: var(--accent-cyan-light);
+  color: var(--accent-cyan);
+}
+
+.about-card-icon.icon-emerald {
+  background: var(--accent-emerald-light);
+  color: var(--accent-emerald);
+}
+
+.about-card-tag {
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  display: block;
+}
+
+.about-card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 6px 0;
+}
+
+.about-card-desc {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.about-architecture-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 32px;
+  box-shadow: var(--card-shadow);
+  width: 100%;
+}
+
+.about-section-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.about-section-desc {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.architecture-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.architecture-step {
+  background: var(--bg-surface-elevated);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color-strong);
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.architecture-step-title {
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 0.92rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.architecture-step-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.architecture-arrow.desktop-arrow {
+  display: block;
+  flex-shrink: 0;
+}
+
+.architecture-arrow.mobile-arrow {
+  display: none;
+  flex-shrink: 0;
+}
+
+.about-footer {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-color-strong);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.about-footer-title {
+  font-weight: 800;
+  color: var(--text-main);
+  font-size: 0.98rem;
+}
+
+.about-footer-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.about-footer-badge {
+  padding: 6px 14px;
+  flex-shrink: 0;
+}
+
+/* Tablet & Mobile Breakpoints for How It Works Tab */
+@media (max-width: 768px) {
+  .about-header {
+    margin-bottom: 20px;
+  }
+
+  .about-title {
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+  }
+
+  .about-subtitle {
+    font-size: 0.85rem;
+    line-height: 1.45;
+    padding: 0 4px;
+  }
+
+  .about-workflow-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .about-card {
+    padding: 18px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .about-card-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 12px;
+  }
+
+  .about-card-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .about-card-tag {
+    font-size: 0.7rem;
+  }
+
+  .about-card-title {
+    font-size: 1.0rem;
+    margin: 4px 0;
+  }
+
+  .about-card-desc {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .about-architecture-box {
+    padding: 18px 16px;
+    margin-bottom: 24px;
+    border-radius: var(--radius-md);
+  }
+
+  .about-section-title {
+    font-size: 1.0rem;
+    margin-bottom: 4px;
+  }
+
+  .about-section-desc {
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+  }
+
+  .architecture-flow {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .architecture-step {
+    padding: 12px 14px;
+    width: 100%;
+  }
+
+  .architecture-step-title {
+    font-size: 0.86rem;
+    white-space: normal;
+  }
+
+  .architecture-step-sub {
+    font-size: 0.75rem;
+    white-space: normal;
+  }
+
+  .architecture-arrow.desktop-arrow {
+    display: none !important;
+  }
+
+  .architecture-arrow.mobile-arrow {
+    display: block !important;
+    align-self: center;
+    margin: 2px 0;
+  }
+
+  .about-footer {
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    border-radius: var(--radius-md);
+  }
+
+  .about-footer-title {
+    font-size: 0.9rem;
+  }
+
+  .about-footer-sub {
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .about-footer-badge {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-title {
+    font-size: 1.25rem;
+  }
+
+  .about-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .about-card {
+    padding: 14px 12px;
+  }
+
+  .about-card-title {
+    font-size: 0.95rem;
+  }
+
+  .about-card-desc {
+    font-size: 0.78rem;
+  }
+
+  .about-architecture-box {
+    padding: 14px 12px;
+  }
+
+  .about-section-title {
+    font-size: 0.95rem;
+  }
+
+  .about-section-desc {
+    font-size: 0.76rem;
+  }
+
+  .architecture-step {
+    padding: 10px 12px;
+  }
+
+  .architecture-step-title {
+    font-size: 0.82rem;
+  }
+
+  .architecture-step-sub {
+    font-size: 0.72rem;
+  }
+
+  .about-footer-title {
+    font-size: 0.85rem;
+  }
+
+  .about-footer-sub {
+    font-size: 0.74rem;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* MY PROFILE PAGE RESPONSIVE STYLES                                          */
+/* -------------------------------------------------------------------------- */
+
+.profile-banner-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--card-shadow);
+  width: 100%;
+}
+
+.profile-banner-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.profile-user-info {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  font-size: 1.8rem;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.profile-user-details {
+  min-width: 0;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.profile-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.profile-verified-badge {
+  font-size: 0.75rem;
+}
+
+.profile-title {
+  font-size: 1rem;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.profile-contact-list {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.profile-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.profile-exp-badge {
+  background: var(--bg-surface-elevated);
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color-strong);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.profile-exp-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: block;
+  font-weight: 600;
+}
+
+.profile-exp-value {
+  font-size: 1.1rem;
+  color: var(--text-main);
+}
+
+.profile-summary-box {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.profile-summary-heading {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.profile-summary-text {
+  font-size: 0.92rem;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+.profile-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.profile-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.profile-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+  width: 100%;
+}
+
+.profile-card-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-skill-item {
+  width: 100%;
+}
+
+.profile-skill-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  margin-bottom: 6px;
+}
+
+.profile-skill-name {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.profile-skill-meta {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.profile-skill-bar-track {
+  width: 100%;
+  height: 8px;
+  background: var(--bg-surface-elevated);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.profile-skill-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.profile-experience-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.profile-experience-item {
+  padding-left: 16px;
+  border-left: 3px solid var(--primary);
+  position: relative;
+}
+
+.profile-experience-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-experience-role {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.profile-experience-period {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.profile-experience-company {
+  font-size: 0.86rem;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.profile-experience-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.profile-education-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-education-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.profile-education-degree {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.profile-education-institution {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.profile-education-badge {
+  margin-top: 6px;
+  font-size: 0.72rem;
+}
+
+.profile-education-year {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.profile-booster-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.profile-booster-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.profile-booster-sub {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.profile-booster-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-booster-tip-item {
+  background: var(--bg-surface-elevated);
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color-strong);
+  font-size: 0.84rem;
+  color: var(--text-main);
+  line-height: 1.45;
+}
+
+.profile-strengths-box {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.profile-strengths-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.profile-strengths-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.profile-strength-chip {
+  font-size: 0.74rem;
+}
+
+/* Tablet & Mobile Breakpoints for My Profile Tab */
+@media (max-width: 768px) {
+  .profile-banner-card {
+    padding: 18px 16px;
+    margin-bottom: 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .profile-banner-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .profile-user-info {
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .profile-avatar {
+    width: 54px;
+    height: 54px;
+    font-size: 1.3rem;
+  }
+
+  .profile-name {
+    font-size: 1.25rem;
+  }
+
+  .profile-title {
+    font-size: 0.88rem;
+  }
+
+  .profile-contact-list {
+    gap: 8px 14px;
+    margin-top: 8px;
+    font-size: 0.78rem;
+  }
+
+  .profile-exp-badge {
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .profile-exp-label {
+    font-size: 0.76rem;
+  }
+
+  .profile-exp-value {
+    font-size: 0.95rem;
+  }
+
+  .profile-summary-box {
+    margin-top: 14px;
+    padding-top: 12px;
+  }
+
+  .profile-summary-heading {
+    font-size: 0.82rem;
+  }
+
+  .profile-summary-text {
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .profile-main-content, .profile-sidebar-content {
+    gap: 16px;
+  }
+
+  .profile-card {
+    padding: 18px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .profile-card-title {
+    font-size: 1.0rem;
+    margin-bottom: 14px;
+  }
+
+  .profile-skill-name {
+    font-size: 0.84rem;
+  }
+
+  .profile-skill-meta {
+    font-size: 0.76rem;
+  }
+
+  .profile-experience-item {
+    padding-left: 12px;
+  }
+
+  .profile-experience-role {
+    font-size: 0.9rem;
+  }
+
+  .profile-experience-period {
+    font-size: 0.74rem;
+  }
+
+  .profile-experience-company {
+    font-size: 0.82rem;
+  }
+
+  .profile-experience-desc {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .profile-education-degree {
+    font-size: 0.9rem;
+  }
+
+  .profile-education-institution {
+    font-size: 0.8rem;
+  }
+
+  .profile-education-year {
+    font-size: 0.74rem;
+  }
+
+  .profile-booster-title {
+    font-size: 0.95rem;
+  }
+
+  .profile-booster-sub {
+    font-size: 0.78rem;
+  }
+
+  .profile-booster-tip-item {
+    font-size: 0.8rem;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-banner-card {
+    padding: 14px 12px;
+  }
+
+  .profile-user-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .profile-user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .profile-name-row {
+    justify-content: center;
+  }
+
+  .profile-contact-list {
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .profile-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
+  }
+
+  .profile-name {
+    font-size: 1.15rem;
+  }
+
+  .profile-title {
+    font-size: 0.82rem;
+  }
+
+  .profile-summary-text {
+    font-size: 0.8rem;
+  }
+
+  .profile-card {
+    padding: 14px 12px;
+  }
+
+  .profile-card-title {
+    font-size: 0.92rem;
+  }
+
+  .profile-skill-name, .profile-skill-meta {
+    font-size: 0.78rem;
+  }
+
+  .profile-experience-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .profile-education-item {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+
