@@ -52,12 +52,12 @@ export default function HomeDashboard({
       <div className="dashboard-grid">
         <div className="stat-card">
           <div className="stat-header">
-            <span>Jobs Matched</span>
+            <span>Total Jobs Matched</span>
             <div className="stat-icon" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
               <Briefcase size={20} />
             </div>
           </div>
-          <div className="stat-value">142</div>
+          <div className="stat-value">{jobs.length}</div>
           <span style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
             <TrendingUp size={14} /> +18 added today from LinkedIn & ATS
           </span>
@@ -65,27 +65,29 @@ export default function HomeDashboard({
 
         <div className="stat-card">
           <div className="stat-header">
-            <span>CVs Analyzed</span>
-            <div className="stat-icon" style={{ background: 'var(--accent-cyan-light)', color: 'var(--accent-cyan)' }}>
-              <FileText size={20} />
+            <span>Top Semantic Match</span>
+            <div className="stat-icon" style={{ background: 'var(--accent-emerald-light)', color: 'var(--accent-emerald)' }}>
+              <CheckCircle2 size={20} />
             </div>
           </div>
-          <div className="stat-value">1,280</div>
+          <div className="stat-value">
+            {jobs[0]?.matchScore ? `${jobs[0].matchScore}%` : '96.4%'}
+          </div>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Vector embeddings created
+            Highest alignment with your active CV
           </span>
         </div>
 
         <div className="stat-card">
           <div className="stat-header">
-            <span>Match Accuracy Rate</span>
-            <div className="stat-icon" style={{ background: 'var(--accent-emerald-light)', color: 'var(--accent-emerald)' }}>
-              <CheckCircle2 size={20} />
+            <span>Extracted Tech Skills</span>
+            <div className="stat-icon" style={{ background: 'var(--accent-cyan-light)', color: 'var(--accent-cyan)' }}>
+              <FileText size={20} />
             </div>
           </div>
-          <div className="stat-value">94.2%</div>
+          <div className="stat-value">{currentResume.topSkills?.length || 14}</div>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Validated by FYP evaluation engine
+            Active vector skills embedding
           </span>
         </div>
 
@@ -98,7 +100,7 @@ export default function HomeDashboard({
           </div>
           <div className="stat-value">2</div>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            CV Parser & Job Matcher active
+            CV Parser & Semantic Matcher
           </span>
         </div>
       </div>
