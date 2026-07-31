@@ -21,6 +21,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [resumeKey, setResumeKey] = useState('default');
+  const [customResume, setCustomResume] = useState(null);
   const [selectedApplyJob, setSelectedApplyJob] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -36,7 +37,16 @@ export default function App() {
     setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
-  const currentResume = SAMPLE_RESUMES[resumeKey];
+  const currentResume = customResume || SAMPLE_RESUMES[resumeKey];
+
+  const handleCustomResumeUpload = (profile) => {
+    setCustomResume(profile);
+  };
+
+  const handleSelectSampleResume = (key) => {
+    setCustomResume(null);
+    setResumeKey(key);
+  };
 
   return (
     <div className="app-container" data-theme={theme}>
@@ -59,7 +69,7 @@ export default function App() {
         <Navbar 
           onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           currentResume={currentResume}
-          onSelectSampleResume={(key) => setResumeKey(key)}
+          onSelectSampleResume={handleSelectSampleResume}
           theme={theme}
           onToggleTheme={toggleTheme}
         />
@@ -78,7 +88,8 @@ export default function App() {
           {activeTab === 'upload' && (
             <UploadResume 
               currentResume={currentResume}
-              onSelectSampleResume={(key) => setResumeKey(key)}
+              onSelectSampleResume={handleSelectSampleResume}
+              onCustomResumeUpload={handleCustomResumeUpload}
               onNavigateTab={(tab) => setActiveTab(tab)}
             />
           )}
@@ -113,3 +124,4 @@ export default function App() {
     </div>
   );
 }
+

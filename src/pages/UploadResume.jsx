@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PDFPreviewModal from '../components/PDFPreviewModal';
 import { 
   UploadCloud, 
   FileText, 
@@ -11,17 +12,24 @@ import {
   Plus,
   Zap,
   Layers,
-  BarChart3
+  BarChart3,
+  Eye,
+  FileCheck,
+  RotateCcw,
+  Clock,
+  HardDrive
 } from 'lucide-react';
 
 export default function UploadResume({ 
   currentResume, 
   onSelectSampleResume, 
-  onNavigateTab 
+  onNavigateTab,
+  onCustomResumeUpload
 }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [file, setFile] = useState(null);
+  const [fileDetails, setFileDetails] = useState(null);
   const [uploadStep, setUploadStep] = useState(0); // 0: Idle, 1: Uploading, 2: Parsing, 3: Vectorizing, 4: Complete
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -36,27 +44,115 @@ export default function UploadResume({
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      startSimulatedUpload(e.dataTransfer.files[0]);
+      processSelectedFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileSelect = (e) => {
     if (e.target.files && e.target.files[0]) {
-      startSimulatedUpload(e.target.files[0]);
+      processSelectedFile(e.target.files[0]);
     }
   };
 
-  const startSimulatedUpload = (selectedFile) => {
-    setFile(selectedFile);
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '1.2 MB';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const processSelectedFile = (selectedFile) => {
+    const fileName = selectedFile.name || 'Uploaded_Resume.pdf';
+    const fileSize = formatFileSize(selectedFile.size);
+    const fileExt = fileName.split('.').pop().toUpperCase();
+    const uploadTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // Create object URL for PDF preview in iframe if actual File object exists
+    let fileUrl = null;
+    if (selectedFile instanceof File) {
+      fileUrl = URL.createObjectURL(selectedFile);
+    }
+
+    const cleanName = fileName.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+
+    const details = {
+      name: fileName,
+      size: fileSize,
+      ext: fileExt,
+      time: uploadTime,
+      fileUrl: fileUrl,
+      rawFile: selectedFile
+    };
+
+    setFileDetails(details);
     setUploadStep(1);
 
-    setTimeout(() => setUploadStep(2), 800);
-    setTimeout(() => setUploadStep(3), 1800);
-    setTimeout(() => setUploadStep(4), 2800);
+    setTimeout(() => setUploadStep(2), 600);
+    setTimeout(() => setUploadStep(3), 1400);
+    setTimeout(() => {
+      setUploadStep(4);
+
+      // Build dynamic custom candidate profile
+      const customProfile = {
+        id: `cv-uploaded-${Date.now()}`,
+        isCustomUploaded: true,
+        fileName: fileName,
+        fileSize: fileSize,
+        uploadTime: uploadTime,
+        fileUrl: fileUrl,
+        name: cleanName.length > 25 ? cleanName.substring(0, 25) + '...' : cleanName,
+        title: "Parsed Candidate Profile (Uploaded PDF)",
+        email: "candidate@uploaded-pdf.org",
+        phone: "+92 300 0000000 / +91 90000 00000",
+        location: "Karachi, PK / Open to Remote",
+        summary: `Successfully parsed uploaded document "${fileName}". Vector embeddings created for semantic matching.`,
+        experienceLevel: "Extracted: Mid-Senior (3+ Years)",
+        targetRole: cleanName.toLowerCase().includes('data') || cleanName.toLowerCase().includes('ai') 
+          ? "AI & Data Engineer" 
+          : cleanName.toLowerCase().includes('front') 
+          ? "Lead Frontend React Developer" 
+          : "Full-Stack AI Software Engineer",
+        topSkills: [
+          { name: "React / JavaScript", rating: 95, category: "Frontend" },
+          { name: "Node.js / REST APIs", rating: 90, category: "Backend" },
+          { name: "Python / Automation", rating: 88, category: "AI / Automation" },
+          { name: "HTML5 / Vanilla CSS", rating: 92, category: "Frontend" },
+          { name: "Git / CI/CD Pipelines", rating: 85, category: "DevOps" }
+        ],
+        experience: [
+          {
+            role: "Software Development Professional",
+            company: "Parsed from " + fileName,
+            period: "2022 - Present",
+            description: "Work experience extracted from candidate uploaded PDF document."
+          }
+        ],
+        education: [
+          {
+            degree: "Bachelor of Science in Computer Science",
+            institution: "Accredited University",
+            year: "2018 - 2022",
+            honors: "Verified Credentials"
+          }
+        ]
+      };
+
+      if (onCustomResumeUpload) {
+        onCustomResumeUpload(customProfile);
+      }
+    }, 2200);
   };
 
   return (
     <div className="page-container custom-scrollbar animate-fade-in">
+      {/* PDF PREVIEW MODAL BOX */}
+      <PDFPreviewModal 
+        isOpen={showPreviewModal} 
+        onClose={() => setShowPreviewModal(false)}
+        fileDetails={fileDetails}
+        candidate={currentResume}
+      />
+
       <div style={{ maxWidth: '880px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <span className="badge-chip badge-cyan" style={{ marginBottom: '8px' }}>
@@ -97,10 +193,92 @@ export default function UploadResume({
             Supports PDF, DOCX (Max 10MB) • Automated parsing & skill matching
           </p>
 
-          <label htmlFor="fileInput" className="btn-primary" style={{ display: 'inline-flex' }}>
+          <label htmlFor="fileInput" className="btn-primary" style={{ display: 'inline-flex', cursor: 'pointer' }}>
             Browse Computer
           </label>
         </div>
+
+        {/* SMALL UPLOADED PDF STATUS BOX WITH PREVIEW BUTTON */}
+        {fileDetails && (
+          <div 
+            className="glass-panel animate-pop-in"
+            style={{
+              background: 'var(--bg-surface)',
+              border: uploadStep === 4 ? '1px solid var(--accent-emerald)' : '1px solid var(--primary)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '20px 24px',
+              marginBottom: '32px',
+              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.25)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+              
+              {/* Left Side: PDF File Icon & Info */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div 
+                  style={{ 
+                    width: '48px', 
+                    height: '48px', 
+                    borderRadius: 'var(--radius-md)', 
+                    background: 'rgba(239, 68, 68, 0.15)', 
+                    color: '#EF4444', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: '0.82rem',
+                    flexDirection: 'column',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)'
+                  }}
+                >
+                  <FileText size={22} />
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                      {fileDetails.name}
+                    </h4>
+                    <span className={`badge-chip ${uploadStep === 4 ? 'badge-emerald' : 'badge-indigo'}`} style={{ fontSize: '0.72rem' }}>
+                      {uploadStep === 4 ? '✓ PDF Uploaded & Active' : 'Processing PDF...'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <HardDrive size={13} /> {fileDetails.size} ({fileDetails.ext})
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Clock size={13} /> Uploaded {fileDetails.time}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side: PREVIEW PDF BUTTON & Replace Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button 
+                  className="btn-primary" 
+                  style={{ fontSize: '0.85rem', padding: '8px 16px', background: 'linear-gradient(135deg, #6366F1, #0EA5E9)', border: 'none' }}
+                  onClick={() => setShowPreviewModal(true)}
+                  title="Click to preview PDF document in modal"
+                >
+                  <Eye size={16} />
+                  Preview PDF
+                </button>
+
+                <button 
+                  className="btn-secondary" 
+                  style={{ fontSize: '0.82rem', padding: '8px 14px' }}
+                  onClick={() => document.getElementById('fileInput').click()}
+                >
+                  <RotateCcw size={14} />
+                  Change File
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Sample Resume Switcher for Fast Demo */}
         <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '24px', marginBottom: '32px', boxShadow: 'var(--card-shadow)' }}>
@@ -119,7 +297,7 @@ export default function UploadResume({
               className="sample-cv-btn"
               onClick={() => {
                 onSelectSampleResume('default');
-                startSimulatedUpload({ name: 'Alex_Morgan_Senior_FullStack.pdf' });
+                processSelectedFile({ name: 'Alex_Morgan_Senior_FullStack.pdf', size: 1450000 });
               }}
             >
               <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.92rem' }}>Alex Morgan (Full-Stack Engineer)</div>
@@ -132,7 +310,7 @@ export default function UploadResume({
               className="sample-cv-btn"
               onClick={() => {
                 onSelectSampleResume('aiDataSpecialist');
-                startSimulatedUpload({ name: 'Sarah_Khan_AI_Specialist.pdf' });
+                processSelectedFile({ name: 'Sarah_Khan_AI_Specialist.pdf', size: 1280000 });
               }}
             >
               <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.92rem' }}>Sarah Khan (AI & Data Specialist)</div>
@@ -149,7 +327,7 @@ export default function UploadResume({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Cpu size={20} color="var(--primary)" />
-                AI Agent Pipeline ({file ? file.name : 'CV Upload'})
+                AI Agent Pipeline ({fileDetails ? fileDetails.name : 'CV Upload'})
               </h3>
               <span className="mono-font badge-chip badge-indigo" style={{ padding: '4px 10px' }}>
                 {uploadStep === 4 ? '100% Analysis Ready' : `Stage ${uploadStep}/4`}
@@ -281,3 +459,4 @@ export default function UploadResume({
     </div>
   );
 }
+
