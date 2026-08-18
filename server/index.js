@@ -1085,6 +1085,6 @@ Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location"
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Node.js Backend Server running on http://localhost:${PORT} (Comprehensive Skill Extraction Engine)`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Job Recommender API listening on port ${PORT}`);
 });

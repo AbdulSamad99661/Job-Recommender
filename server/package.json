@@ -4,6 +4,9 @@
   "description": "Node.js Express server connecting React UI with n8n 2-Agent workflow for PDF Parsing and Job Matching",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js"

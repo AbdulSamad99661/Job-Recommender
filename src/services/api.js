@@ -3,6 +3,14 @@
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const IS_PRODUCTION = import.meta.env.PROD;
+
+function backendUnreachableMessage() {
+  if (IS_PRODUCTION) {
+    return 'Cannot reach backend. Set VITE_API_URL in Vercel to your Render API URL (e.g. https://job-recommender-api.onrender.com/api).';
+  }
+  return 'Cannot reach backend. Start it with: cd server && npm run dev';
+}
 
 export class ApiError extends Error {
   constructor(message, { status, code, details, warnings } = {}) {
@@ -33,7 +41,7 @@ export async function checkBackendHealth() {
   } catch (error) {
     if (error instanceof ApiError) throw error;
     throw new ApiError(
-      'Cannot reach backend. Start it with: cd server && npm run dev',
+      backendUnreachableMessage(),
       { code: 'BACKEND_UNREACHABLE', details: error.message }
     );
   }
@@ -105,7 +113,7 @@ export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 
     }
 
     throw new ApiError(
-      'Cannot reach backend. Start it with: cd server && npm run dev',
+      backendUnreachableMessage(),
       { code: 'BACKEND_UNREACHABLE', details: error.message }
     );
   } finally {
