@@ -64,9 +64,6 @@ function buildSetupHints(config) {
   if (!config.has_openai) {
     hints.push('Add OPENAI_API_KEY to server/.env for AI-powered CV parsing and match scoring.');
   }
-  if (!config.has_n8n) {
-    hints.push('Optional: set N8N_WEBHOOK_URL in server/.env to route matching through your n8n workflow (local or cloud).');
-  }
   return hints;
 }
 
