@@ -2,12 +2,14 @@
  * API Service — communicates with Node.js backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
 const IS_PRODUCTION = import.meta.env.PROD;
 
 function backendUnreachableMessage() {
   if (IS_PRODUCTION) {
-    return 'Cannot reach backend. Set VITE_API_URL in Vercel to your Render API URL (e.g. https://job-recommender-api.onrender.com/api).';
+    return 'Cannot reach backend. Add RAPIDAPI_KEY and OPENAI_API_KEY in Vercel → Settings → Environment Variables, then redeploy.';
   }
   return 'Cannot reach backend. Start it with: cd server && npm run dev';
 }
@@ -78,7 +80,7 @@ export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 
     const response = await fetch(`${API_BASE_URL}/recommend-jobs`, {
       method: 'POST',
       body: formData,
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(IS_PRODUCTION ? 55000 : 90000),
     });
 
     const data = await response.json().catch(() => ({}));
@@ -106,7 +108,11 @@ export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 
     if (error instanceof ApiError) throw error;
 
     if (error.name === 'TimeoutError' || error.name === 'AbortError') {
-      throw new ApiError('Request timed out. Job search can take up to 90 seconds.', {
+      throw new ApiError(
+        IS_PRODUCTION
+          ? 'Request timed out. Vercel Hobby limits API calls to ~10–60 seconds. Try a sample profile or run the backend locally for full speed.'
+          : 'Request timed out. Job search can take up to 90 seconds.',
+        {
         code: 'TIMEOUT',
         details: error.message,
       });
