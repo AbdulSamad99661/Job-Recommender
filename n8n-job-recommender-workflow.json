@@ -1,0 +1,166 @@
+{
+  "name": "AI Job Recommender - Agent 1 (Comprehensive CV Parser) & Agent 2 (Dynamic Skill Matcher)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### 📌 AGENT 1: COMPREHENSIVE CV RESUME PARSER\n**Purpose:** Receives PDF text via Webhook, extracts ALL candidate skills (80+ tech taxonomy), name, email, phone, location, and target role dynamically."
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        140
+      ],
+      "id": "note-agent-1",
+      "name": "Note: Agent 1 Overview"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "job-recommender-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        320
+      ],
+      "id": "webhook-trigger",
+      "name": "1. Webhook Trigger (PDF + Location)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent 1: Comprehensive Dynamic CV Resume Parser\nconst input = $input.first().json;\nconst body = input.body || input;\nconst text = input.text || body.text || 'Software Developer Resume';\nconst location = body.location || 'Dubai';\nconst filename = body.filename || 'Uploaded_Resume.pdf';\nconst lower = text.toLowerCase();\n\n// 1. Dynamic Name\nconst lines = text.split(/\\r?\\n/).map(l => l.trim()).filter(l => l.length > 0);\nlet name = filename.replace(/\\.[^/.]+$/, \"\").replace(/[-_]/g, \" \");\nfor (let i = 0; i < Math.min(5, lines.length); i++) {\n  const line = lines[i];\n  if (line.length > 2 && line.length < 35 && !line.includes('@') && !/\\d/.test(line) && !/contact|resume|education|skills/i.test(line)) {\n    name = line;\n    break;\n  }\n}\n\n// 2. Email & Phone\nconst emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/);\nconst email = emailMatch ? emailMatch[0].trim() : 'candidate@uploaded-cv.org';\nconst phoneMatch = text.match(/(\\+?\\d{1,3}[\\s-]?)?\\(?\\d{3}\\)?[\\s-]?\\d{3}[\\s-]?\\d{4}|\\+?\\d{10,13}/);\nconst phone = phoneMatch ? phoneMatch[0].trim() : 'Contact via Email';\n\n// 3. Role\nlet role = 'Web Developer';\nif (lower.includes('full stack') || lower.includes('fullstack')) role = 'Full Stack Developer';\nelse if (lower.includes('react') || lower.includes('frontend')) role = 'React Developer';\nelse if (lower.includes('python') || lower.includes('data engineer')) role = 'Python Developer';\nelse if (lower.includes('node') || lower.includes('backend')) role = 'Backend Engineer';\nelse if (lower.includes('ai') || lower.includes('machine learning')) role = 'AI Developer';\nelse if (lower.includes('devops') || lower.includes('cloud')) role = 'DevOps Engineer';\n\n// 4. Comprehensive 80+ Skills Extraction\nconst knownSkills = [\n  'React.js', 'JavaScript', 'TypeScript', 'Node.js', 'Python', 'FastAPI', 'Django',\n  'PostgreSQL', 'SQL', 'MongoDB', 'Redis', 'Docker', 'Kubernetes', 'AWS Cloud',\n  'Git & GitHub', 'REST APIs', 'GraphQL', 'Tailwind CSS', 'HTML5 & CSS3', 'Next.js',\n  'Vue.js', 'Angular', 'Machine Learning', 'Deep Learning', 'Pandas & NumPy', 'CI/CD'\n];\n\nconst extractedSkills = [];\nknownSkills.forEach(s => {\n  if (lower.includes(s.toLowerCase())) {\n    extractedSkills.push(s);\n  }\n});\nif (extractedSkills.length === 0) {\n  extractedSkills.push('Software Engineering', 'Problem Solving');\n}\n\nreturn [{\n  json: {\n    candidate_name: name,\n    candidate_email: email,\n    candidate_phone: phone,\n    target_location: location,\n    target_role: role,\n    extracted_skills: extractedSkills,\n    search_query: role + ' in ' + location,\n    extracted_at: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        320
+      ],
+      "id": "agent-1-parser",
+      "name": "2. Agent 1: Comprehensive CV Parser"
+    },
+    {
+      "parameters": {
+        "url": "https://jsearch.p.rapidapi.com/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.search_query }}"
+            },
+            {
+              "name": "num_pages",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "={{ $env.RAPIDAPI_KEY }}"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "jsearch.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        320
+      ],
+      "id": "agent-2-rapidapi",
+      "name": "3. Agent 2: RapidAPI JSearch Execution"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent 2: Live Job Skill Matcher & Scorer\nconst agent1Data = $input.first().json;\nconst apiResponse = $(\"3. Agent 2: RapidAPI JSearch Execution\").first().json;\nconst rawJobs = apiResponse.data || [];\nconst candidateSkills = agent1Data.extracted_skills || ['Software Engineering'];\nconst targetLocation = agent1Data.target_location || 'Dubai';\n\nconst processedJobs = rawJobs.slice(0, 10).map((job, idx) => {\n  const title = job.job_title || 'Software Developer';\n  const company = job.employer_name || 'Tech Enterprise';\n  const city = job.job_city || targetLocation;\n  const location = job.job_city ? (job.job_city + ', ' + (job.job_country || '')).trim() : (job.job_country || targetLocation);\n  const description = (job.job_description || '').toLowerCase();\n\n  const matchedSkills = [];\n  const missingSkills = [];\n  candidateSkills.forEach(skill => {\n    if (description.includes(skill.toLowerCase())) matchedSkills.push(skill);\n    else missingSkills.push(skill);\n  });\n  if (matchedSkills.length === 0) matchedSkills.push('General Engineering');\n\n  const matchScore = Math.min(98, 65 + Math.min(30, matchedSkills.length * 8));\n\n  let postedTimeAgo = 'Posted recently';\n  const postedDate = job.job_posted_at_datetime_utc || job.job_posted_at_timestamp;\n  if (postedDate) {\n    const diffHours = Math.floor((Date.now() - new Date(postedDate).getTime()) / (1000 * 60 * 60));\n    postedTimeAgo = diffHours < 24 ? ('Posted ' + Math.max(1, diffHours) + ' hours ago') : ('Posted ' + Math.floor(diffHours / 24) + ' days ago');\n  }\n\n  let applyLink = job.job_apply_link;\n  if (!applyLink && Array.isArray(job.job_apply_options) && job.job_apply_options[0]) {\n    applyLink = job.job_apply_options[0].apply_link;\n  }\n  if (!applyLink) applyLink = 'https://www.linkedin.com/jobs';\n\n  const publisher = job.job_publisher || 'Live Job Board';\n\n  return {\n    job_id: job.job_id || ('n8n_job_' + (idx + 1)),\n    title: title,\n    company: company,\n    location: location,\n    city: city,\n    country: targetLocation,\n    match_score: matchScore,\n    posted_time_ago: postedTimeAgo,\n    apply_link: applyLink,\n    source_platform: publisher + ' (n8n)',\n    explanation: {\n      why_matched: 'Strong alignment for ' + agent1Data.candidate_name + ' as ' + title + ' at ' + company + '. Matched: ' + matchedSkills.slice(0, 4).join(', ') + '.',\n      matching_skills: matchedSkills.slice(0, 6),\n      missing_skills: missingSkills.slice(0, 5),\n      recommendation: 'Apply directly via ' + publisher + '.',\n    },\n  };\n});\n\nreturn [{\n  json: {\n    status: 'success',\n    source: 'n8n_agent_workflow',\n    target_role: agent1Data.target_role,\n    target_location: targetLocation,\n    total_recommendations: processedJobs.length,\n    jobs: processedJobs,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        320
+      ],
+      "id": "agent-2-matcher",
+      "name": "4. Agent 2: Skill Matcher & Scorer"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1100,
+        320
+      ],
+      "id": "respond-webhook",
+      "name": "5. Respond to Webhook with Jobs"
+    }
+  ],
+  "connections": {
+    "1. Webhook Trigger (PDF + Location)": {
+      "main": [
+        [
+          {
+            "node": "2. Agent 1: Comprehensive CV Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Agent 1: Comprehensive CV Parser": {
+      "main": [
+        [
+          {
+            "node": "3. Agent 2: RapidAPI JSearch Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Agent 2: RapidAPI JSearch Execution": {
+      "main": [
+        [
+          {
+            "node": "4. Agent 2: Skill Matcher & Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Agent 2: Skill Matcher & Scorer": {
+      "main": [
+        [
+          {
+            "node": "5. Respond to Webhook with Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

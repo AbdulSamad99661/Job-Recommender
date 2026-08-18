@@ -10,11 +10,11 @@ import {
   Sparkles
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) {
+export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jobCount = 0 }) {
   const navItems = [
     { id: 'home', label: 'Dashboard', icon: Home },
     { id: 'upload', label: 'Upload Resume', icon: UploadCloud },
-    { id: 'matches', label: 'Job Matches', icon: Briefcase, badge: '8' },
+    { id: 'matches', label: 'Job Matches', icon: Briefcase, badge: jobCount > 0 ? String(jobCount) : null },
     { id: 'profile', label: 'My Profile', icon: UserCheck },
     { id: 'about', label: 'How it Works', icon: Info }
   ];
@@ -36,9 +36,9 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) 
               <Bot size={22} color="#FFF" />
             </div>
             <div>
-              <div style={{ lineHeight: 1.1, fontSize: '1.1rem', fontWeight: 800 }}>JR</div>
+              <div style={{ lineHeight: 1.1, fontSize: '1.05rem', fontWeight: 800 }}>JobMatch</div>
               <span style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>
-                Job Recommender
+                AI Career Assistant
               </span>
             </div>
           </div>
@@ -84,10 +84,10 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen }) 
             <div>
               <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Sparkles size={12} color="var(--accent-emerald)" />
-                AI Agent Active
+                Ready to match
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                n8n + Node.js Engine
+                Upload a CV to get started
               </div>
             </div>
           </div>

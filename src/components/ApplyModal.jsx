@@ -1,20 +1,32 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Send, CheckCircle2, FileText } from 'lucide-react';
+import { X, Sparkles, CheckCircle2, FileText, ExternalLink } from 'lucide-react';
 
 export default function ApplyModal({ job, candidate, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [coverLetter, setCoverLetter] = useState(
-    `Dear Hiring Manager at ${job.company},\n\nI am writing to express my strong interest in the ${job.title} position in ${job.location}. Based on my background as a ${candidate.title} with experience in ${job.matchedSkills.slice(0, 3).join(', ')}, I am confident that I can make an immediate contribution to your engineering team.\n\nMy AI resume match score of ${job.matchScore}% highlights strong alignment with your technical stack. I look forward to discussing how my experience fits your requirements.\n\nBest regards,\n${candidate.name}`
+    `Dear Hiring Manager at ${job.company || 'the Team'},\n\nI am writing to express my strong interest in the ${job.title} position located in ${job.location || 'your region'}. Based on my background as a ${candidate?.title || 'Software Developer'} with experience in ${(job.matchedSkills || ['React', 'JavaScript']).slice(0, 3).join(', ')}, I am confident that I can make an immediate contribution to your engineering team.\n\nMy AI match score of ${job.matchScore || job.match_score || 90}% highlights strong alignment with your required technical stack. I look forward to discussing how my experience fits your requirements.\n\nBest regards,\n${candidate?.name || 'Applicant'}`
   );
+
+  const applyUrl = job.applyLink || job.apply_link || 'https://www.linkedin.com/jobs';
+
+  const handleOpenExternalJob = () => {
+    if (applyUrl) {
+      window.open(applyUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   const handleApply = (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // Open external official job site automatically
+    handleOpenExternalJob();
+
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubmitted(true);
-    }, 1000);
+    }, 800);
   };
 
   return (
@@ -22,15 +34,15 @@ export default function ApplyModal({ job, candidate, onClose }) {
       <div className="modal-content animate-pop-in">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="company-logo" style={{ background: job.logoBg, width: '40px', height: '40px', fontSize: '0.95rem' }}>
-              {job.logoText}
+            <div className="company-logo" style={{ background: job.logoBg || 'var(--primary-light)', width: '40px', height: '40px', fontSize: '0.95rem' }}>
+              {job.logoText || (job.company ? job.company.substring(0, 2).toUpperCase() : 'JOB')}
             </div>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
                 Apply to {job.company}
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                {job.title} • {job.flag} {job.location}
+                {job.title} • {job.location}
               </p>
             </div>
           </div>
@@ -50,17 +62,37 @@ export default function ApplyModal({ job, candidate, onClose }) {
               <CheckCircle2 size={36} />
             </div>
             <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '8px' }}>
-              Application Submitted!
+              Opening Job Site!
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px' }}>
-              Your resume and AI-optimized cover letter have been sent to {job.company} via the agent pipeline.
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>
+              Redirecting you to the official job listing at <strong>{job.company}</strong> ({job.source_platform || 'LinkedIn / Indeed'}).
             </p>
-            <button className="btn-primary" onClick={onClose}>
-              Done & Return to Jobs
-            </button>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button className="btn-primary" onClick={handleOpenExternalJob}>
+                <ExternalLink size={16} /> Re-open Job Portal
+              </button>
+              <button className="btn-secondary" onClick={onClose}>
+                Done & Close
+              </button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleApply}>
+            {/* DIRECT EXTERNAL LINK BANNER */}
+            <div style={{ background: 'var(--bg-surface-elevated)', padding: '12px 16px', borderRadius: 'var(--radius-md)', marginBottom: '16px', border: '1px solid var(--accent-cyan)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.84rem', color: 'var(--text-main)' }}>
+                🌐 <strong>Official Posting:</strong> {job.source_platform || 'RapidAPI Live Search'}
+              </div>
+              <button 
+                type="button" 
+                className="btn-secondary" 
+                style={{ fontSize: '0.8rem', padding: '5px 12px' }}
+                onClick={handleOpenExternalJob}
+              >
+                Open Direct URL <ExternalLink size={13} />
+              </button>
+            </div>
+
             <div style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -68,13 +100,13 @@ export default function ApplyModal({ job, candidate, onClose }) {
                   AI-Generated Tailored Cover Letter
                 </label>
                 <span className="mono-font badge-chip badge-emerald" style={{ fontSize: '0.72rem' }}>
-                  {job.matchScore}% Match Rationale
+                  {job.matchScore || job.match_score || 90}% Match Rationale
                 </span>
               </div>
               <textarea
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
-                rows={8}
+                rows={7}
                 style={{
                   width: '100%',
                   background: 'var(--bg-surface-elevated)',
@@ -95,7 +127,7 @@ export default function ApplyModal({ job, candidate, onClose }) {
               <FileText size={22} color="var(--primary)" />
               <div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Attached CV: {candidate.name} Resume.pdf
+                  Attached CV: {candidate?.name || 'Candidate'} Resume.pdf
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
                   Parsed skills & vector embedding attached automatically
@@ -109,11 +141,11 @@ export default function ApplyModal({ job, candidate, onClose }) {
               </button>
               <button type="submit" className="btn-primary" disabled={isSubmitting}>
                 {isSubmitting ? (
-                  <>Sending Application...</>
+                  <>Redirecting to Job Site...</>
                 ) : (
                   <>
-                    <Send size={16} />
-                    Submit Application
+                    <ExternalLink size={16} />
+                    Apply on Official Site
                   </>
                 )}
               </button>

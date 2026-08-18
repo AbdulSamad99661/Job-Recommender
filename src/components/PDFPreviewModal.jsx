@@ -1,17 +1,20 @@
 import React from 'react';
-import { X, FileText, Download, ExternalLink, Sparkles, CheckCircle2, Eye } from 'lucide-react';
+import { X, FileText, Download } from 'lucide-react';
 
 export default function PDFPreviewModal({ 
-  isOpen, 
+  isOpen = true, 
   onClose, 
   fileDetails, 
-  candidate 
+  candidate,
+  fileUrl: fileUrlProp,
+  fileName: fileNameProp,
 }) {
   if (!isOpen) return null;
 
-  const fileName = fileDetails?.name || candidate?.fileName || `${candidate?.name || 'Resume'}.pdf`;
+  const fileName = fileDetails?.name || fileNameProp || candidate?.fileName || `${candidate?.name || 'Resume'}.pdf`;
   const fileSize = fileDetails?.size || candidate?.fileSize || '1.2 MB';
-  const fileUrl = fileDetails?.fileUrl;
+  const fileUrl = fileDetails?.fileUrl || fileUrlProp;
+  const pdfSrc = fileUrl ? `${fileUrl}#view=FitH&toolbar=1` : null;
 
   return (
     <div className="modal-backdrop animate-fade-in" onClick={onClose} style={{ zIndex: 9999 }}>
@@ -84,10 +87,10 @@ export default function PDFPreviewModal({
 
         {/* Modal Body: Render iframe PDF viewer if fileUrl exists, else render Document Sheet */}
         <div style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-dark)', padding: '16px' }}>
-          {fileUrl ? (
+          {pdfSrc ? (
             <div style={{ width: '100%', height: '520px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
               <iframe 
-                src={fileUrl} 
+                src={pdfSrc} 
                 title="PDF Resume Preview"
                 width="100%" 
                 height="100%" 

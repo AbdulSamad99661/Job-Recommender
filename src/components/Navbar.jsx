@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   Bell, 
   Menu, 
-  Sparkles, 
   ChevronDown, 
   CheckCircle2, 
   Zap, 
@@ -10,20 +9,28 @@ import {
   Moon
 } from 'lucide-react';
 
+const PAGE_TITLES = {
+  home: 'Dashboard',
+  upload: 'Upload Resume',
+  matches: 'Job Matches',
+  profile: 'My Profile',
+  about: 'How It Works',
+};
+
 export default function Navbar({ 
   onMenuToggle, 
   currentResume, 
   onSelectSampleResume,
   theme,
-  onToggleTheme
+  onToggleTheme,
+  activeTab = 'home',
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   return (
     <header className="navbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Mobile Hamburger Button - HIDDEN on Laptop/Desktop, VISIBLE on Mobile/Tablet */}
+      <div className="navbar-left">
         <button 
           className="icon-btn mobile-hamburger-btn" 
           onClick={onMenuToggle}
@@ -32,10 +39,9 @@ export default function Navbar({
           <Menu size={20} />
         </button>
 
-        {/* System Status Pill */}
-        <div className="badge-chip badge-indigo system-status-pill">
-          <Sparkles size={14} color="var(--primary)" />
-          <span>n8n + Node.js Agent Engine: Ready</span>
+        <div className="navbar-page-title">
+          <h2>{PAGE_TITLES[activeTab] || 'Job Recommender'}</h2>
+          <p>AI-powered resume matching</p>
         </div>
       </div>
 
@@ -101,11 +107,11 @@ export default function Navbar({
             onClick={() => setShowProfileMenu(!showProfileMenu)}
           >
             <div className="user-avatar">
-              {currentResume.name.substring(0, 2).toUpperCase()}
+              {(currentResume?.name || 'Candidate').substring(0, 2).toUpperCase()}
             </div>
             <div className="user-profile-info">
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                {currentResume.name}
+                {currentResume?.name || 'Candidate Profile'}
               </span>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                 Active Profile
@@ -136,7 +142,7 @@ export default function Navbar({
 
               <button 
                 className="sample-cv-btn"
-                style={{ width: '100%', textWrap: 'wrap', textAlign: 'left' }}
+                style={{ width: '100%', textWrap: 'wrap', textAlign: 'left', marginBottom: '8px' }}
                 onClick={() => {
                   onSelectSampleResume('aiDataSpecialist');
                   setShowProfileMenu(false);
@@ -144,6 +150,18 @@ export default function Navbar({
               >
                 <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)' }}>Sarah Khan</div>
                 <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>AI Specialist & Python Data Eng</div>
+              </button>
+
+              <button 
+                className="sample-cv-btn"
+                style={{ width: '100%', textWrap: 'wrap', textAlign: 'left' }}
+                onClick={() => {
+                  onSelectSampleResume('bellaTrevino');
+                  setShowProfileMenu(false);
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-main)' }}>Bella Trevino</div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>Web Developer (React, Node, SQL)</div>
               </button>
             </div>
           )}
