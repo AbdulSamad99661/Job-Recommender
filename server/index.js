@@ -5,12 +5,13 @@ import pdfParse from 'pdf-parse';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -1085,6 +1086,15 @@ Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location"
   }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Job Recommender API listening on port ${PORT}`);
-});
+function isMainModule() {
+  if (!process.argv[1]) return false;
+  return import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+}
+
+if (isMainModule()) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Job Recommender API listening on port ${PORT}`);
+  });
+}
+
+export default app;
