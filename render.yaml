@@ -1,0 +1,20 @@
+# Render Blueprint — deploy backend from GitHub
+# Dashboard: New → Blueprint → connect AbdulSamad99661/Job-Recommender
+services:
+  - type: web
+    name: job-recommender-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: RAPIDAPI_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: N8N_WEBHOOK_URL
+        sync: false
