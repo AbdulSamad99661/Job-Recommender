@@ -8,9 +8,8 @@ import {
   CheckCircle2, 
   FileText, 
   TrendingUp, 
-  Zap, 
   ArrowRight,
-  ShieldCheck
+  Target
 } from 'lucide-react';
 
 export default function HomeDashboard({ 
@@ -20,147 +19,138 @@ export default function HomeDashboard({
   onApplyJob 
 }) {
   const topJobs = jobs.slice(0, 3);
+  const topScore = jobs[0]?.matchScore ?? null;
+  const skillCount = currentResume.topSkills?.length || 0;
 
   return (
     <div className="page-container custom-scrollbar animate-fade-in">
-      {/* Hero Welcome Banner */}
       <div className="hero-banner">
         <div className="hero-content">
-          <div className="badge-chip badge-indigo" style={{ marginBottom: '12px', background: 'rgba(99, 102, 241, 0.25)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.3)' }}>
-            <Sparkles size={14} color="#A5B4FC" />
-            AI Job Recommendation System • FYP
+          <div className="hero-eyebrow">
+            <Sparkles size={14} />
+            Smart job matching for tech careers
           </div>
-          <h1>Welcome back, {currentResume.name.split(' ')[0]}!</h1>
+          <h1>Hi {currentResume.name.split(' ')[0]}, find your next role</h1>
           <p>
-            Let's find your next role. Your resume has been parsed and matched with live tech jobs across Pakistan 🇵🇰 and India 🇮🇳 with explainable AI scoring.
+            Upload your resume and get matched with live job listings across Dubai, Pakistan, India, and remote roles — with clear skill scores and apply links.
           </p>
           
-          <div style={{ display: 'flex', gap: '14px', marginTop: '22px', flexWrap: 'wrap' }}>
+          <div className="hero-actions">
             <button className="btn-primary" onClick={() => onNavigateTab('upload')}>
               <UploadCloud size={18} />
-              Upload & Analyze Resume
+              Upload Resume
             </button>
-            <button className="btn-secondary" style={{ background: 'rgba(255,255,255,0.15)', color: '#FFF', borderColor: 'rgba(255,255,255,0.3)' }} onClick={() => onNavigateTab('matches')}>
+            <button className="btn-secondary hero-secondary-btn" onClick={() => onNavigateTab('matches')}>
               <Briefcase size={18} />
-              View Top Matches ({jobs.length})
+              View Matches {jobs.length > 0 ? `(${jobs.length})` : ''}
             </button>
           </div>
         </div>
       </div>
 
-      {/* 4 Quick Stat Cards */}
       <div className="dashboard-grid">
         <div className="stat-card">
           <div className="stat-header">
-            <span>Total Jobs Matched</span>
-            <div className="stat-icon" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
+            <span>Jobs Matched</span>
+            <div className="stat-icon stat-icon-primary">
               <Briefcase size={20} />
             </div>
           </div>
           <div className="stat-value">{jobs.length}</div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <TrendingUp size={14} /> +18 added today from LinkedIn & ATS
+          <span className="stat-footnote stat-footnote-success">
+            <TrendingUp size={14} /> {jobs.length > 0 ? 'From your latest search' : 'Upload a CV to start'}
           </span>
         </div>
 
         <div className="stat-card">
           <div className="stat-header">
-            <span>Top Semantic Match</span>
-            <div className="stat-icon" style={{ background: 'var(--accent-emerald-light)', color: 'var(--accent-emerald)' }}>
+            <span>Best Match Score</span>
+            <div className="stat-icon stat-icon-emerald">
               <CheckCircle2 size={20} />
             </div>
           </div>
-          <div className="stat-value">
-            {jobs[0]?.matchScore ? `${jobs[0].matchScore}%` : '96.4%'}
-          </div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Highest alignment with your active CV
-          </span>
+          <div className="stat-value">{topScore != null ? `${topScore}%` : '—'}</div>
+          <span className="stat-footnote">Highest alignment with your profile</span>
         </div>
 
         <div className="stat-card">
           <div className="stat-header">
-            <span>Extracted Tech Skills</span>
-            <div className="stat-icon" style={{ background: 'var(--accent-cyan-light)', color: 'var(--accent-cyan)' }}>
+            <span>Skills Detected</span>
+            <div className="stat-icon stat-icon-cyan">
               <FileText size={20} />
             </div>
           </div>
-          <div className="stat-value">{currentResume.topSkills?.length || 14}</div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Active vector skills embedding
-          </span>
+          <div className="stat-value">{skillCount || '—'}</div>
+          <span className="stat-footnote">Extracted from your active resume</span>
         </div>
 
         <div className="stat-card">
           <div className="stat-header">
-            <span>Active AI Agents</span>
-            <div className="stat-icon" style={{ background: 'var(--accent-amber-light)', color: 'var(--accent-amber)' }}>
-              <Zap size={20} />
+            <span>Target Role</span>
+            <div className="stat-icon stat-icon-amber">
+              <Target size={20} />
             </div>
           </div>
-          <div className="stat-value">2</div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            CV Parser & Semantic Matcher
-          </span>
+          <div className="stat-value stat-value-sm">{currentResume.title || '—'}</div>
+          <span className="stat-footnote">Inferred from your CV</span>
         </div>
       </div>
 
-      {/* Main Content Split */}
       <div className="dashboard-content-split">
-        {/* Top 3 Job Recommendations Snapshot */}
         <div className="top-roles-container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
+          <div className="section-header-row">
             <div>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)' }}>Top Recommended Roles</h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Highest semantic alignment for your active profile</p>
+              <h2 className="section-title">Top Recommendations</h2>
+              <p className="section-subtitle">Best matches for your current profile</p>
             </div>
 
-            <button 
-              className="btn-secondary" 
-              style={{ fontSize: '0.82rem', padding: '7px 14px' }}
-              onClick={() => onNavigateTab('matches')}
-            >
-              View All ({jobs.length})
-              <ArrowRight size={14} />
-            </button>
+            {jobs.length > 0 && (
+              <button 
+                className="btn-secondary btn-compact" 
+                onClick={() => onNavigateTab('matches')}
+              >
+                View All ({jobs.length})
+                <ArrowRight size={14} />
+              </button>
+            )}
           </div>
 
-          <div style={{ width: '100%' }}>
-            {topJobs.map((job) => (
+          {topJobs.length > 0 ? (
+            topJobs.map((job) => (
               <JobCard key={job.id} job={job} onApply={onApplyJob} />
-            ))}
-          </div>
+            ))
+          ) : (
+            <div className="empty-state-card">
+              <Briefcase size={32} color="var(--text-dim)" />
+              <h3>No matches yet</h3>
+              <p>Upload your resume to see personalized job recommendations.</p>
+              <button className="btn-primary" onClick={() => onNavigateTab('upload')}>
+                <UploadCloud size={16} /> Get Started
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Right Side Panel: Agent Activity Feed */}
         <div className="agent-activity-panel">
-          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '24px', boxShadow: 'var(--card-shadow)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-              <ShieldCheck size={22} color="var(--accent-cyan)" />
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>Agent Activity Log</h3>
+          <div className="activity-panel-card">
+            <div className="activity-panel-header">
+              <Sparkles size={20} color="var(--accent-cyan)" />
+              <h3>Recent Activity</h3>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div className="activity-list">
               {MOCK_ACTIVITIES.map((act) => (
-                <div key={act.id} style={{ display: 'flex', gap: '14px', fontSize: '0.88rem' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--primary)', marginTop: '6px', flexShrink: 0 }} />
+                <div key={act.id} className="activity-item">
+                  <div className="activity-dot" />
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <strong style={{ color: 'var(--text-main)', fontSize: '0.88rem' }}>{act.title}</strong>
-                      <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>{act.time}</span>
+                    <div className="activity-item-header">
+                      <strong>{act.title}</strong>
+                      <span>{act.time}</span>
                     </div>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', lineHeight: 1.5 }}>
-                      {act.description}
-                    </p>
+                    <p>{act.description}</p>
                   </div>
                 </div>
               ))}
-            </div>
-
-            <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
-              <span className="mono-font" style={{ fontSize: '0.78rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>
-                System Orchestration: n8n + Node.js
-              </span>
             </div>
           </div>
         </div>

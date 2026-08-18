@@ -27,7 +27,7 @@ export const MOCK_ACTIVITIES = [
     id: "act-4",
     time: "3 hours ago",
     title: "Agent Vector Index Updated",
-    description: "Job vectors refreshed from n8n & Node.js scraping pipelines.",
+    description: "Job listings refreshed from live job board APIs.",
     type: "warning",
     icon: "Zap"
   }
