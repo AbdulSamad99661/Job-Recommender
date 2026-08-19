@@ -67,6 +67,19 @@ function buildSetupHints(config) {
   return hints;
 }
 
+const MIN_MATCH_SCORE = 30;
+const MAX_JOBS_RETURNED = 20;
+
+function filterJobsByMinScore(jobs, minScore = MIN_MATCH_SCORE) {
+  return jobs
+    .filter((job) => {
+      const score = job.match_score ?? job.matchScore ?? 0;
+      return typeof score === 'number' && score >= minScore;
+    })
+    .sort((a, b) => (b.match_score ?? b.matchScore ?? 0) - (a.match_score ?? a.matchScore ?? 0))
+    .slice(0, MAX_JOBS_RETURNED);
+}
+
 function normalizeN8nResponse(n8nData, fullProfile, location, config) {
   const rawJobs = n8nData.jobs || [];
   const processedJobs = rawJobs.map((job, idx) => {
@@ -98,14 +111,16 @@ function normalizeN8nResponse(n8nData, fullProfile, location, config) {
     };
   });
 
+  const rankedJobs = filterJobsByMinScore(processedJobs);
+
   return {
     status: 'success',
-    total_matches: processedJobs.length,
+    total_matches: rankedJobs.length,
     requested_location: location,
     extracted_role: n8nData.target_role || fullProfile.title,
     data_source: 'n8n',
     config_status: config,
-    warnings: buildResponseWarnings(config, 'n8n', processedJobs.length),
+    warnings: buildResponseWarnings(config, 'n8n', rankedJobs.length),
     candidate_contact: {
       name: fullProfile.name,
       phone: fullProfile.phone,
@@ -114,7 +129,7 @@ function normalizeN8nResponse(n8nData, fullProfile, location, config) {
     },
     parsed_profile: fullProfile,
     processed_at: new Date().toISOString(),
-    jobs: processedJobs,
+    jobs: rankedJobs,
   };
 }
 
@@ -817,7 +832,7 @@ app.post('/api/recommend-jobs', upload.single('resume'), async (req, res) => {
           params: { 
             query: searchQuery, 
             page: '1', 
-            num_pages: '1' 
+            num_pages: '2' 
           },
           headers: {
             'x-rapidapi-key': process.env.RAPIDAPI_KEY,
@@ -832,7 +847,7 @@ app.post('/api/recommend-jobs', upload.single('resume'), async (req, res) => {
           const fallbackQuery = `Developer in ${location}`;
           console.log(`⚠️ Primary query returned 0 jobs. Trying fallback query: "${fallbackQuery}"...`);
           rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
-            params: { query: fallbackQuery, page: '1', num_pages: '1' },
+            params: { query: fallbackQuery, page: '1', num_pages: '2' },
             headers: {
               'x-rapidapi-key': process.env.RAPIDAPI_KEY,
               'x-rapidapi-host': 'jsearch.p.rapidapi.com'
@@ -861,9 +876,10 @@ app.post('/api/recommend-jobs', upload.single('resume'), async (req, res) => {
           const prompt = `Analyze candidate resume snippet and score match against these ${rawJobs.length} live jobs:
 Candidate: ${fullProfile.name} (${fullProfile.title}, Skills: ${fullProfile.topSkills.map(s=>s.name).join(', ')})
 Resume Snippet: ${resumeText.substring(0, 800)}
-Jobs: ${JSON.stringify(rawJobs.slice(0, 10).map(j => ({ id: j.job_id, title: j.job_title, company: j.employer_name, desc: j.job_description ? j.job_description.substring(0, 200) : '' })))}
+Jobs: ${JSON.stringify(rawJobs.slice(0, 20).map(j => ({ id: j.job_id, title: j.job_title, company: j.employer_name, desc: j.job_description ? j.job_description.substring(0, 200) : '' })))}
 
-Return a valid JSON object with key "jobs": an array of objects with keys: job_id, match_score (0-100), why_matched, matching_skills (array), missing_skills (array), recommendation.
+Return a valid JSON object with key "jobs": an array with one scored entry for EVERY job listed above (do not omit any). Each object must have keys: job_id, match_score (0-100), why_matched, matching_skills (array), missing_skills (array), recommendation.
+Include all jobs with match_score >= ${MIN_MATCH_SCORE}. Score honestly — partial matches can be 30-60%.
 CRITICAL INSTRUCTION FOR why_matched: Write a comprehensive, detailed 5-line (4 to 5 sentences) explanation for each job analyzing candidate technical alignment, matched skills, role suitability, skill gaps, and hiring recommendations.`;
 
           const aiResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
@@ -885,7 +901,7 @@ CRITICAL INSTRUCTION FOR why_matched: Write a comprehensive, detailed 5-line (4 
         }
       }
 
-      processedJobs = rawJobs.slice(0, 10).map((job, idx) => {
+      processedJobs = rawJobs.slice(0, 20).map((job, idx) => {
         const aiItem = aiScores.find(s => s.job_id === job.job_id) || aiScores[idx] || {};
 
         const postedTimeAgo = calculateRelativePostingTime(
@@ -955,10 +971,11 @@ CRITICAL INSTRUCTION FOR why_matched: Write a comprehensive, detailed 5-line (4 
             { role: 'system', content: 'You are an expert AI Talent Matcher and Job Recommender.' },
             { 
               role: 'user', 
-              content: `Generate 5 realistic job postings in ${location} tailored for candidate ${fullProfile.name} (${fullProfile.title}).
+              content: `Generate 8 realistic job postings in ${location} tailored for candidate ${fullProfile.name} (${fullProfile.title}).
 Candidate Skills: ${fullProfile.topSkills.map(s => s.name).join(', ')}.
+Each job must have match_score between ${MIN_MATCH_SCORE} and 98 (vary scores realistically).
 CRITICAL INSTRUCTION FOR why_matched: Write a detailed, comprehensive 5-line (4 to 5 sentences) explanation for each job detailing candidate skill alignment, matched technologies, role suitabilities, missing skills, and application recommendations.
-Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location": "${location}", "city": "${location}", "salary": "$...", "match_score": 92, "why_matched": "...", "matching_skills": ["..."], "missing_skills": ["..."], "apply_link": "https://linkedin.com/jobs", "recommendation": "..."}]}` 
+Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location": "${location}", "city": "${location}", "salary": "$...", "match_score": 72, "why_matched": "...", "matching_skills": ["..."], "missing_skills": ["..."], "apply_link": "https://linkedin.com/jobs", "recommendation": "..."}]}` 
             }
           ],
           response_format: { type: 'json_object' }
@@ -1049,14 +1066,82 @@ Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location"
             missing_skills: ['GraphQL'],
             recommendation: 'Good alignment with candidate tech stack. Recommended to apply on Glassdoor.'
           }
+        },
+        {
+          job_id: 'fallback_job_3',
+          title: `${fullProfile.title} Associate`,
+          company: 'TechBridge Solutions',
+          location: location,
+          city: location,
+          country: location,
+          is_remote: location === 'Remote',
+          posted_date: new Date().toISOString().split('T')[0],
+          posted_time_ago: 'Posted 2 days ago',
+          salary: '$70,000 - $95,000',
+          apply_link: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(fullProfile.title + ' ' + location)}`,
+          source_platform: 'LinkedIn (Skill Engine)',
+          match_score: 76,
+          match_level: 'Good Match',
+          explanation: {
+            why_matched: `Solid partial alignment for ${fullProfile.name} with transferable skills in ${topSkillsList.slice(0, 2).join(' and ')}.`,
+            matching_skills: topSkillsList.slice(0, 2),
+            missing_skills: topSkillsList.slice(2, 4),
+            recommendation: 'Worth applying while building missing skills.'
+          }
+        },
+        {
+          job_id: 'fallback_job_4',
+          title: `Junior ${fullProfile.title}`,
+          company: 'StartUp Labs',
+          location: location,
+          city: location,
+          country: location,
+          is_remote: false,
+          posted_date: new Date().toISOString().split('T')[0],
+          posted_time_ago: 'Posted 4 days ago',
+          salary: '$55,000 - $75,000',
+          apply_link: `https://www.google.com/search?q=${encodeURIComponent(fullProfile.title + ' jobs ' + location)}`,
+          source_platform: 'Google Jobs (Skill Engine)',
+          match_score: 62,
+          match_level: 'Moderate Match',
+          explanation: {
+            why_matched: `Entry-level fit with room to grow into ${fullProfile.title} responsibilities.`,
+            matching_skills: topSkillsList.slice(0, 2),
+            missing_skills: topSkillsList.slice(2, 5),
+            recommendation: 'Good option for candidates open to junior roles.'
+          }
+        },
+        {
+          job_id: 'fallback_job_5',
+          title: `${fullProfile.title} — Contract`,
+          company: 'Agile Workforce Co.',
+          location: location,
+          city: location,
+          country: location,
+          is_remote: true,
+          posted_date: new Date().toISOString().split('T')[0],
+          posted_time_ago: 'Posted 5 days ago',
+          salary: '$45 - $65 / hour',
+          apply_link: `https://www.ziprecruiter.com/candidate/search?search=${encodeURIComponent(fullProfile.title)}`,
+          source_platform: 'ZipRecruiter (Skill Engine)',
+          match_score: 45,
+          match_level: 'Moderate Match',
+          explanation: {
+            why_matched: `Contract role with partial stack overlap; suitable for short-term experience.`,
+            matching_skills: topSkillsList.slice(0, 1),
+            missing_skills: topSkillsList.slice(1, 4),
+            recommendation: 'Consider if you want contract or remote flexibility.'
+          }
         }
       ];
       dataSource = 'skill_engine_fallback';
     }
 
+    processedJobs = filterJobsByMinScore(processedJobs);
+
     const warnings = buildResponseWarnings(config, dataSource, processedJobs.length);
 
-    console.log(`🚀 Returning ${processedJobs.length} job matches (source: ${dataSource})`);
+    console.log(`🚀 Returning ${processedJobs.length} job matches above ${MIN_MATCH_SCORE}% (source: ${dataSource})`);
 
     return res.json({
       status: 'success',
