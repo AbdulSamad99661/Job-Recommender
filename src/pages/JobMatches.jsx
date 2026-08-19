@@ -27,7 +27,7 @@ export default function JobMatches({
   const [selectedCountry, setSelectedCountry] = useState('All');
   const [selectedCity, setSelectedCity] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
-  const [minScore, setMinScore] = useState(50);
+  const [minScore, setMinScore] = useState(30);
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredJobs = jobs.filter((job) => {
@@ -140,7 +140,7 @@ export default function JobMatches({
             <label>Min Score:</label>
             <input
               type="range"
-              min="50"
+              min="30"
               max="95"
               step="5"
               value={minScore}
@@ -202,7 +202,7 @@ export default function JobMatches({
               setSelectedCountry('All');
               setSelectedCity('All');
               setSelectedType('All');
-              setMinScore(50);
+              setMinScore(30);
               setSearchQuery('');
             }}
           >
