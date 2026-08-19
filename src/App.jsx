@@ -183,8 +183,6 @@ export default function App() {
       <div className="main-wrapper">
         <Navbar
           onMenuToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          currentResume={currentResume}
-          onSelectSampleResume={handleSelectSampleResume}
           theme={theme}
           onToggleTheme={toggleTheme}
           activeTab={activeTab}
