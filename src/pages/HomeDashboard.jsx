@@ -20,7 +20,8 @@ export default function HomeDashboard({
 }) {
   const topJobs = jobs.slice(0, 3);
   const topScore = jobs[0]?.matchScore ?? null;
-  const skillCount = currentResume.topSkills?.length || 0;
+  const skillCount = currentResume?.topSkills?.length || 0;
+  const firstName = currentResume?.name?.split(' ')?.[0] || 'there';
 
   return (
     <div className="page-container custom-scrollbar animate-fade-in">
@@ -30,7 +31,7 @@ export default function HomeDashboard({
             <Sparkles size={14} />
             Smart job matching for tech careers
           </div>
-          <h1>Hi {currentResume.name.split(' ')[0]}, find your next role</h1>
+          <h1>Hi {firstName}, find your next role</h1>
           <p>
             Upload your resume and get matched with live job listings across Dubai, Pakistan, India, and remote roles — with clear skill scores and apply links.
           </p>
@@ -91,7 +92,7 @@ export default function HomeDashboard({
               <Target size={20} />
             </div>
           </div>
-          <div className="stat-value stat-value-sm">{currentResume.title || '—'}</div>
+          <div className="stat-value stat-value-sm">{currentResume?.title || '—'}</div>
           <span className="stat-footnote">Inferred from your CV</span>
         </div>
       </div>

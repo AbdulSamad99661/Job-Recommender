@@ -23,7 +23,7 @@ import './styles/animations.css';
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
-  const [resumeKey, setResumeKey] = useState('default');
+  const [resumeKey, setResumeKey] = useState(null);
   const [customResume, setCustomResume] = useState(null);
   const [selectedApplyJob, setSelectedApplyJob] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -71,7 +71,7 @@ export default function App() {
     setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
-  const currentResume = customResume || SAMPLE_RESUMES[resumeKey];
+  const currentResume = customResume || (resumeKey ? SAMPLE_RESUMES[resumeKey] : null);
 
   const handleSelectSampleResume = (key) => {
     setCustomResume(null);
@@ -229,7 +229,10 @@ export default function App() {
           )}
 
           {activeTab === 'profile' && (
-            <Profile currentResume={currentResume} />
+            <Profile
+              currentResume={currentResume}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
           )}
 
           {activeTab === 'about' && (
