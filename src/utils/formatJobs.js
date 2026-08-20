@@ -1,4 +1,4 @@
-export function formatJobsFromResponse(response, location, roleOrSkill = 'Software Engineer') {
+export function formatJobsFromResponse(response, location, roleOrSkill = 'Professional') {
   if (!response?.jobs?.length) return [];
   return response.jobs
     .map((j, idx) => ({

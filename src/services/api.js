@@ -57,7 +57,7 @@ export async function checkBackendHealth() {
  * @param {string|null} resumeText - Plain-text CV for sample profiles
  * @param {(step: number) => void} onProgress - 1=upload, 2=parse, 3=search, 4=done
  */
-export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 'Software Engineer', resumeText = null, onProgress = null) {
+export async function getJobRecommendations(pdfFile, location = 'Dubai', role = null, resumeText = null, onProgress = null) {
   onProgress?.(1);
 
   const formData = new FormData();
@@ -68,7 +68,7 @@ export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 
     formData.append('resumeText', resumeText);
   }
   formData.append('location', location);
-  formData.append('role', role);
+  if (role) formData.append('role', role);
 
   let progressTimer;
   if (onProgress) {

@@ -79,7 +79,7 @@ export default function App() {
     setMatchError(null);
   };
 
-  const handleFetchJobRecommendations = useCallback(async (pdfFile, location = 'Dubai', role = 'Software Engineer', resumeText = null) => {
+  const handleFetchJobRecommendations = useCallback(async (pdfFile, location = 'Dubai', role = null, resumeText = null) => {
     setIsMatchingLoading(true);
     setMatchingStep(1);
     setActiveLocation(location);

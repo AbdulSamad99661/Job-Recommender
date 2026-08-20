@@ -39,7 +39,7 @@ export default function JobCard({ job, onApply }) {
   // Safe Fallbacks to extract skills & posting time from all backend JSON keys
   const matchScore = job.matchScore || job.match_score || 88;
   const postedTime = job.postedDate || job.posted_time_ago || job.posted_date || 'Posted recently';
-  const matchedList = job.matchedSkills || job.matched_skills || job.explanation?.matching_skills || ['React', 'JavaScript', 'Node.js'];
+  const matchedList = job.matchedSkills || job.matched_skills || job.explanation?.matching_skills || [];
   const missingList = job.missingSkills || job.missing_skills || job.explanation?.missing_skills || [];
   const whyRationale = job.rationale || job.explanation?.why_matched || `Candidate CV skills directly match requirements for ${job.title} at ${job.company}.`;
 
