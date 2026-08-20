@@ -3,6 +3,7 @@ import {
   Home, 
   UploadCloud, 
   Briefcase, 
+  Search,
   UserCheck, 
   Info, 
   Bot, 
@@ -14,6 +15,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jo
   const navItems = [
     { id: 'home', label: 'Dashboard', icon: Home },
     { id: 'upload', label: 'Upload Resume', icon: UploadCloud },
+    { id: 'search', label: 'Search', icon: Search },
     { id: 'matches', label: 'Job Matches', icon: Briefcase, badge: jobCount > 0 ? String(jobCount) : null },
     { id: 'profile', label: 'My Profile', icon: UserCheck },
     { id: 'about', label: 'How it Works', icon: Info }

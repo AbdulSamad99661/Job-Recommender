@@ -2620,3 +2620,131 @@
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
 }
+
+/* Skill Search page */
+.search-jobs-form {
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-jobs-input-wrap {
+  position: relative;
+}
+
+.search-jobs-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-jobs-input {
+  width: 100%;
+  padding: 14px 16px 14px 44px;
+  font-size: 1rem;
+}
+
+.search-jobs-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.search-location-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.location-pill {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface-elevated);
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-pill:hover {
+  border-color: var(--primary);
+}
+
+.location-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.quick-skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-skill-chip {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-skill-chip:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.search-jobs-submit {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-results-header {
+  margin-bottom: 20px;
+}
+
+.search-results-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.search-results-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.search-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+@media (max-width: 640px) {
+  .search-jobs-form {
+    padding: 16px;
+  }
+
+  .search-jobs-submit {
+    width: 100%;
+    justify-content: center;
+  }
+}
