@@ -104,7 +104,7 @@ export default function UploadResume({
 
     const rawFile = fileDetails.rawFile || null;
     const resumeText = fileDetails.isSample ? SAMPLE_RESUME_TEXT[fileDetails.sampleKey] : null;
-    const targetRole = currentResume?.title || null;
+    const targetRole = currentResume?.title || 'Software Developer';
 
     onFetchJobRecommendations(rawFile, targetLocation, targetRole, resumeText);
   };
@@ -250,10 +250,9 @@ export default function UploadResume({
           </div>
           <div className="sample-profiles-grid">
             {[
-              { key: 'default', name: 'Alex Morgan', desc: 'IT • Full Stack Developer' },
-              { key: 'civilEngineer', name: 'Omar Hassan', desc: 'Civil Engineer' },
-              { key: 'medicalDoctor', name: 'Dr. Ayesha Malik', desc: 'Medical Doctor' },
-              { key: 'aiDataSpecialist', name: 'Sarah Khan', desc: 'AI & Data' },
+              { key: 'default', name: 'Alex Morgan', desc: 'Full Stack • React & Node' },
+              { key: 'bellaTrevino', name: 'Bella Trevino', desc: 'React • UI/UX' },
+              { key: 'aiDataSpecialist', name: 'Sarah Khan', desc: 'AI & Python' },
             ].map(({ key, name, desc }) => (
               <button
                 key={key}

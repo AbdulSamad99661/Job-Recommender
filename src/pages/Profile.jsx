@@ -101,14 +101,14 @@ export default function Profile({ currentResume, onNavigateTab }) {
           <div className="profile-card">
             <h3 className="profile-card-title">
               <Sparkles size={18} color="var(--accent-cyan)" />
-              Extracted Skills & Competencies
+              Extracted Technical Taxonomy & Skills
             </h3>
 
             {topSkills.length > 0 ? (
               <div className="profile-skills-list">
                 {topSkills.map((skill, idx) => {
                   const sName = typeof skill === 'string' ? skill : (skill.name || `Skill ${idx + 1}`);
-                  const sCategory = typeof skill === 'string' ? 'Professional Skill' : (skill.category || 'Skill');
+                  const sCategory = typeof skill === 'string' ? 'Technical Skill' : (skill.category || 'Skill');
                   const sRating = typeof skill === 'string' ? 90 : (skill.rating || 90);
 
                   return (
@@ -165,7 +165,7 @@ export default function Profile({ currentResume, onNavigateTab }) {
             <div className="profile-card">
               <h3 className="profile-card-title">
                 <FolderGit2 size={18} color="var(--accent-cyan)" />
-                Key Projects & Accomplishments
+                Key Projects & Technical Accomplishments
               </h3>
 
               <div className="profile-experience-list">

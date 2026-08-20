@@ -17,13 +17,13 @@ export default function About() {
         <div className="about-header">
           <span className="badge-chip badge-indigo about-badge">
             <Sparkles size={14} color="var(--primary)" />
-            AI Job Matching Platform
+            Final Year Project • Computer Science & AI
           </span>
           <h1 className="about-title">
             Job Recommendation System
           </h1>
           <p className="about-subtitle">
-            Resume understanding with explainable matching — for IT, engineering, medical, business, and all other professions across Pakistan 🇵🇰, India 🇮🇳, and Dubai 🇦🇪.
+            Resume Understanding with Explainable Matching — bridging job seekers and tech employers across Pakistan 🇵🇰 and India 🇮🇳.
           </p>
         </div>
 
@@ -38,7 +38,7 @@ export default function About() {
               CV Analysis Agent
             </h3>
             <p className="about-card-desc">
-              Parses PDF resumes from any field into structured profiles — extracting skills, experience, education, and target roles for medical, engineering, IT, business, and more.
+              Parses unstructured PDF/Word resumes into structured technical taxonomy, extracting skills, experience level, education, and target job roles.
             </p>
           </div>
 

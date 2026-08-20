@@ -6,12 +6,6 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import {
-  PROFESSIONAL_SKILLS_TAXONOMY,
-  inferRoleFromResumeText,
-  computeTitleAlignment,
-  getDefaultSkillsForText,
-} from './professionalTaxonomy.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -221,19 +215,18 @@ function formatSkillName(rawName) {
 
 /**
  * COMPREHENSIVE SKILL EXTRACTOR
- * Extracts skills from any professional CV — IT, engineering, medical, business, etc.
+ * Extracts ALL explicit skills from CV section + scans 80+ technology keywords
  */
 function extractComprehensiveSkillsFromText(text) {
-  const lines = text ? text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0) : [];
-  if (!text) return getDefaultSkillsForText('', lines);
-
+  if (!text) return [{ name: 'Software Engineering', rating: 92, category: 'Engineering' }];
+  
   const lower = text.toLowerCase();
   const extractedMap = new Map();
 
-  const skillsHeaderIdx = lines.findIndex(l =>
-    /^(technical\s+)?skills|skills\s*&\s*technologies|competencies|technologies|tools|clinical skills|specialties|certifications|core competencies|professional skills/i.test(l)
-  );
-
+  // 1. Explicit SKILLS section parser
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  const skillsHeaderIdx = lines.findIndex(l => /^(technical\s+)?skills|skills\s*&\s*technologies|competencies|technologies|tools/i.test(l));
+  
   if (skillsHeaderIdx !== -1 && lines.length > skillsHeaderIdx + 1) {
     const rawSkillLines = lines.slice(skillsHeaderIdx + 1, skillsHeaderIdx + 6);
     rawSkillLines.forEach(line => {
@@ -255,8 +248,55 @@ function extractComprehensiveSkillsFromText(text) {
     });
   }
 
-  // 2. Multi-domain taxonomy scanner (IT, engineering, medical, business, etc.)
-  PROFESSIONAL_SKILLS_TAXONOMY.forEach(item => {
+  // 2. Comprehensive 80+ Keyword Taxonomy Scanner
+  const taxonomy = [
+    // Frontend
+    { name: 'React.js', category: 'Frontend', keywords: ['react', 'react.js', 'reactjs'] },
+    { name: 'JavaScript', category: 'Frontend', keywords: ['javascript', 'js', 'es6', 'ecmascript'] },
+    { name: 'TypeScript', category: 'Frontend & Backend', keywords: ['typescript', 'ts'] },
+    { name: 'HTML5 & CSS3', category: 'Frontend', keywords: ['html', 'html5', 'css', 'css3'] },
+    { name: 'Tailwind CSS', category: 'Frontend', keywords: ['tailwind', 'tailwindcss'] },
+    { name: 'Next.js', category: 'Frontend', keywords: ['next.js', 'nextjs'] },
+    { name: 'Vue.js', category: 'Frontend', keywords: ['vue', 'vue.js', 'vuejs'] },
+    { name: 'Angular', category: 'Frontend', keywords: ['angular', 'angularjs'] },
+    { name: 'Redux', category: 'Frontend State', keywords: ['redux', 'toolkit'] },
+
+    // Backend & Languages
+    { name: 'Node.js', category: 'Backend', keywords: ['node', 'node.js', 'nodejs', 'express', 'express.js'] },
+    { name: 'Python', category: 'AI & Backend', keywords: ['python', 'py'] },
+    { name: 'Django', category: 'Backend Framework', keywords: ['django'] },
+    { name: 'FastAPI', category: 'Backend Framework', keywords: ['fastapi'] },
+    { name: 'REST APIs', category: 'Backend Integration', keywords: ['rest', 'api', 'apis', 'restful'] },
+    { name: 'GraphQL', category: 'API Architecture', keywords: ['graphql'] },
+    { name: 'Java', category: 'Backend & Enterprise', keywords: ['java', 'spring', 'spring boot'] },
+    { name: 'C++', category: 'Systems Engineering', keywords: ['c++', 'cpp'] },
+    { name: 'C# / .NET', category: 'Backend', keywords: ['c#', '.net', 'asp.net'] },
+    { name: 'PHP / Laravel', category: 'Backend', keywords: ['php', 'laravel'] },
+    { name: 'Go / Golang', category: 'Backend & Cloud', keywords: ['go', 'golang'] },
+
+    // AI, Data & Machine Learning
+    { name: 'Machine Learning', category: 'AI & Data', keywords: ['machine learning', 'ml', 'scikit-learn', 'sklearn'] },
+    { name: 'Deep Learning', category: 'AI & Data', keywords: ['deep learning', 'tensorflow', 'pytorch', 'keras'] },
+    { name: 'Pandas & NumPy', category: 'Data Science', keywords: ['pandas', 'numpy'] },
+    { name: 'Artificial Intelligence', category: 'AI & Data', keywords: ['artificial intelligence', 'ai', 'n8n', 'llm', 'genai', 'openai'] },
+    { name: 'Data Analysis', category: 'Data Analytics', keywords: ['data analysis', 'data analytics', 'powerbi', 'tableau'] },
+
+    // Databases & Storage
+    { name: 'PostgreSQL', category: 'Database', keywords: ['postgresql', 'postgres'] },
+    { name: 'SQL', category: 'Database', keywords: ['sql', 'mysql', 'sqlite', 't-sql'] },
+    { name: 'MongoDB', category: 'NoSQL Database', keywords: ['mongodb', 'mongo'] },
+    { name: 'Redis', category: 'Caching & Database', keywords: ['redis'] },
+
+    // Cloud, DevOps & Tools
+    { name: 'Docker', category: 'DevOps & Containers', keywords: ['docker', 'containerization'] },
+    { name: 'Kubernetes', category: 'Cloud Orchestration', keywords: ['kubernetes', 'k8s'] },
+    { name: 'AWS Cloud', category: 'Cloud Infrastructure', keywords: ['aws', 'amazon web services', 's3', 'ec2', 'lambda'] },
+    { name: 'Git & GitHub', category: 'Version Control', keywords: ['git', 'github', 'gitlab', 'bitbucket'] },
+    { name: 'CI/CD Pipelines', category: 'DevOps', keywords: ['ci/cd', 'jenkins', 'github actions'] },
+    { name: 'Agile & Scrum', category: 'Methodology', keywords: ['agile', 'scrum', 'jira', 'kanban'] }
+  ];
+
+  taxonomy.forEach(item => {
     if (item.keywords.some(kw => {
       const regex = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
       return regex.test(lower);
@@ -274,7 +314,10 @@ function extractComprehensiveSkillsFromText(text) {
   const results = Array.from(extractedMap.values());
 
   if (results.length === 0) {
-    return getDefaultSkillsForText(text, lines);
+    return [
+      { name: 'Software Development', rating: 92, category: 'Engineering' },
+      { name: 'Problem Solving & Logic', rating: 90, category: 'Core Skills' }
+    ];
   }
 
   return results;
@@ -323,7 +366,7 @@ async function parseResumeWithOpenAI(text, filename) {
   if (!text || text.trim().length < 50) return null;
 
   try {
-    const prompt = `Parse this resume into structured JSON. The candidate may be from ANY field — medicine, engineering, IT, business, education, law, etc. Extract real data only; do not invent employers or degrees.
+    const prompt = `Parse this resume into structured JSON. Extract real data only — do not invent employers or degrees.
 
 Resume filename: ${filename}
 Resume text:
@@ -342,7 +385,7 @@ insights ({matchScoreBoosters: string[], strengthAreas: string[]})`;
       {
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are an expert resume parser for all professions (medical, engineering, IT, business, etc.). Return valid JSON only.' },
+          { role: 'system', content: 'You are an expert resume parser. Return valid JSON only.' },
           { role: 'user', content: prompt },
         ],
         response_format: { type: 'json_object' },
@@ -437,20 +480,23 @@ function parseUploadedResumeText(text, filename = 'Candidate_CV.pdf') {
     const cleanName = filename.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
     return {
       name: cleanName || 'Candidate Profile',
-      title: 'Professional',
+      title: 'Software Developer',
       email: 'candidate@uploaded-cv.org',
       phone: 'Contact via Email',
       location: 'Open to Remote / Relocation',
-      summary: `Parsed uploaded resume file "${filename}". Ready for AI job matching.`,
-      experienceLevel: 'Professional',
-      targetRole: 'Professional',
-      topSkills: getDefaultSkillsForText('', []),
+      summary: `Parsed uploaded resume file "${filename}". Ready for AI semantic matching.`,
+      experienceLevel: 'Software Engineer',
+      targetRole: 'Software Developer',
+      topSkills: [
+        { name: 'JavaScript', rating: 92, category: 'Frontend' },
+        { name: 'Node.js', rating: 88, category: 'Backend' }
+      ],
       experience: [],
       education: [],
       projects: [],
       insights: {
-        matchScoreBoosters: ['Add role-specific keywords and certifications from your field to improve match scores'],
-        strengthAreas: ['Professional Experience']
+        matchScoreBoosters: ['Add production cloud keywords (Docker, AWS) for higher match score'],
+        strengthAreas: ['Software Engineering']
       }
     };
   }
@@ -493,10 +539,17 @@ function parseUploadedResumeText(text, filename = 'Candidate_CV.pdf') {
     else location = 'Open to Remote / Relocation';
   }
 
-  // 5. DYNAMIC TARGET ROLE — any profession (medical, engineering, IT, business, etc.)
-  const title = inferRoleFromResumeText(text, lines);
+  // 5. DYNAMIC TARGET ROLE EXTRACTION
+  let title = 'Web Developer';
+  if (lower.includes('full stack') || lower.includes('fullstack')) title = 'Full Stack Developer';
+  else if (lower.includes('react') || lower.includes('frontend')) title = 'React Developer';
+  else if (lower.includes('python') || lower.includes('data engineer') || lower.includes('data scientist')) title = 'Python Developer';
+  else if (lower.includes('node') || lower.includes('backend')) title = 'Backend Engineer';
+  else if (lower.includes('ai') || lower.includes('machine learning') || lower.includes('ml engineer')) title = 'AI Developer';
+  else if (lower.includes('devops') || lower.includes('cloud')) title = 'DevOps Engineer';
+  else if (lower.includes('mobile') || lower.includes('flutter') || lower.includes('android')) title = 'Mobile App Developer';
 
-  // 6. COMPREHENSIVE MULTI-DOMAIN SKILLS EXTRACTION
+  // 6. COMPREHENSIVE DYNAMIC TECHNICAL SKILLS EXTRACTION
   const extractedSkills = extractComprehensiveSkillsFromText(text);
 
   // 7. DYNAMIC SUMMARY
@@ -585,18 +638,19 @@ function parseUploadedResumeText(text, filename = 'Candidate_CV.pdf') {
  * Dynamically extracts skills from web job posting text (description, highlights)
  * and matches them against candidate CV skills.
  */
-function extractAndMatchJobSkills(job, candidateSkills, candidateTitle = '') {
+function extractAndMatchJobSkills(job, candidateSkills) {
   const jobText = (
     (job.job_title || '') + ' ' +
     (job.job_description || '') + ' ' +
     (job.job_highlights ? JSON.stringify(job.job_highlights) : '')
   ).toLowerCase();
 
-  const taxonomyNames = PROFESSIONAL_SKILLS_TAXONOMY.map((t) => t.name);
-  const candidateNames = candidateSkills
-    ? candidateSkills.map((s) => (typeof s === 'string' ? s : s.name))
-    : [];
-  const knownSkills = [...new Set([...taxonomyNames, ...candidateNames])];
+  const knownSkills = [
+    'React', 'JavaScript', 'Node.js', 'Python', 'TypeScript', 'SQL', 'PostgreSQL', 
+    'REST API', 'GraphQL', 'Docker', 'AWS', 'Kubernetes', 'HTML', 'CSS', 'Tailwind',
+    'Django', 'FastAPI', 'Java', 'C++', 'Go', 'PHP', 'Git', 'CI/CD', 'Microservices',
+    'Figma', 'Flutter', 'Redux', 'Next.js', 'Vue.js', 'Angular', 'MongoDB'
+  ];
 
   // 1. Identify skills required by the web job posting
   const requiredJobSkills = [];
@@ -641,10 +695,17 @@ function extractAndMatchJobSkills(job, candidateSkills, candidateTitle = '') {
   const totalEvaluatedSkills = Math.max(1, matchedSkills.length + missingSkills.length);
   const skillRatio = matchedSkills.length / totalEvaluatedSkills;
 
-  // 4. Role / title alignment (works for any profession)
-  const titleScore = computeTitleAlignment(job.job_title, candidateTitle);
+  // 4. Role / Title Alignment Check (30% weight)
+  const jobTitleLower = (job.job_title || '').toLowerCase();
+  let titleScore = 0.5; // default 50% title alignment
+  if (jobTitleLower.includes('developer') || jobTitleLower.includes('engineer') || jobTitleLower.includes('architect') || jobTitleLower.includes('programmer')) {
+    titleScore = 0.85;
+  }
+  if (jobTitleLower.includes('software') || jobTitleLower.includes('full stack') || jobTitleLower.includes('web')) {
+    titleScore = 1.0;
+  }
 
-  // 5. Weighted Match Percentage (70% Skills, 30% Role/Title)
+  // 5. Weighted Match Percentage (70% Skills Weight, 30% Role/Title Weight)
   let calculatedScore = Math.round((skillRatio * 100 * 0.70) + (titleScore * 100 * 0.30));
 
   // Cap between 15% and 99%
@@ -655,17 +716,17 @@ function extractAndMatchJobSkills(job, candidateSkills, candidateTitle = '') {
   
   let whyMatched = '';
   if (matchedSkills.length > 0) {
-    whyMatched = `Candidate demonstrates strong professional alignment for the ${jobTitle} position at ${companyName}. ` +
-      `The extracted profile matches ${matchedSkills.length} key requirements including ${matchedSkills.join(', ')}. ` +
-      `Background in ${candidateSkillNames.slice(0, 3).join(', ')} supports day-to-day responsibilities. ` +
-      (missingSkills.length > 0 ? `Developing ${missingSkills.slice(0, 2).join(' and ')} would further strengthen suitability. ` : `The candidate meets evaluated prerequisites for this role. `) +
-      `Overall recommendation is favorable for applying to ${companyName}.`;
+    whyMatched = `Candidate demonstrates strong technical alignment for the ${jobTitle} position at ${companyName}. ` +
+      `The extracted resume profile directly matches ${matchedSkills.length} key technical requirements including ${matchedSkills.join(', ')}. ` +
+      `Candidate background in ${candidateSkillNames.slice(0, 3).join(', ')} provides a solid foundation for day-to-day engineering responsibilities. ` +
+      (missingSkills.length > 0 ? `To further enhance match suitability, candidate can gain exposure in ${missingSkills.slice(0, 2).join(' and ')}. ` : `The candidate meets 100% of evaluated technical skill prerequisites. `) +
+      `Overall recommendation is highly favorable for submitting an application to ${companyName}.`;
   } else {
-    whyMatched = `Target role aligns with ${jobTitle} at ${companyName}, offering a relevant career step. ` +
-      `Primary skills (${candidateSkillNames.slice(0, 3).join(', ')}) show transferable capability. ` +
-      `Role-specific requirements (${missingSkills.slice(0, 3).join(', ')}) were not fully matched on the CV. ` +
-      `Building experience in ${missingSkills[0] || 'listed requirements'} would improve fit. ` +
-      `Consider highlighting relevant experience when applying to ${companyName}.`;
+    whyMatched = `Target role aligns with ${jobTitle} at ${companyName}, providing a relevant career trajectory step. ` +
+      `Primary candidate skills (${candidateSkillNames.slice(0, 3).join(', ')}) demonstrate core software engineering capabilities. ` +
+      `However, key job-specific technical prerequisites (${missingSkills.slice(0, 3).join(', ')}) were not explicitly found on the uploaded CV. ` +
+      `Developing hands-on projects with ${missingSkills[0] || 'required tools'} will significantly boost candidate suitability. ` +
+      `Consider highlighting transferable problem-solving experience when applying to ${companyName}.`;
   }
 
   return {
@@ -712,7 +773,7 @@ function buildProfileFromSkillInput(skill, location) {
   };
 }
 
-async function fetchRapidApiJobs(searchQuery, location, config, fallbackRole = 'Professional') {
+async function fetchRapidApiJobs(searchQuery, location, config) {
   if (!config.has_rapidapi) return [];
 
   try {
@@ -734,7 +795,7 @@ async function fetchRapidApiJobs(searchQuery, location, config, fallbackRole = '
       return rapidResponse.data.data;
     }
 
-    const fallbackQuery = `${fallbackRole} in ${location}`;
+    const fallbackQuery = `Developer in ${location}`;
     console.log(`⚠️ Primary query returned 0 jobs. Trying fallback: "${fallbackQuery}"...`);
     rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
       params: { query: fallbackQuery, page: '1', num_pages: '2' },
@@ -759,7 +820,7 @@ function mapRawJobsToProcessed(rawJobs, fullProfile, location, aiScores = []) {
       job.job_posted_at_datetime_utc,
       job.job_posted_at_timestamp
     );
-    const skillAnalysis = extractAndMatchJobSkills(job, fullProfile.topSkills, fullProfile.title);
+    const skillAnalysis = extractAndMatchJobSkills(job, fullProfile.topSkills);
     const score = aiItem.match_score || skillAnalysis.matchScore;
 
     const cleanTitle = encodeURIComponent(`${job.job_title || fullProfile.title} ${job.employer_name || ''}`);
@@ -830,7 +891,7 @@ Include jobs with match_score >= ${MIN_MATCH_SCORE}. Partial skill matches can s
       {
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are an AI Job Matching Engine for all professions (medical, engineering, IT, business, etc.).' },
+          { role: 'system', content: 'You are an AI Job Matching Engine.' },
           { role: 'user', content: prompt },
         ],
         response_format: { type: 'json_object' },
@@ -931,8 +992,48 @@ app.post('/api/recommend-jobs', upload.single('resume'), async (req, res) => {
     }
 
     // 2. Query Live Jobs from RapidAPI JSearch (LinkedIn, Indeed, Glassdoor, ZipRecruiter)
-    let rawJobs = await fetchRapidApiJobs(searchQuery, location, config, fullProfile.title);
+    let rawJobs = [];
+    if (config.has_rapidapi) {
+      try {
+        console.log(`📡 Agent 2: Querying live RapidAPI JSearch for: "${searchQuery}"...`);
+        let rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
+          params: { 
+            query: searchQuery, 
+            page: '1', 
+            num_pages: '2' 
+          },
+          headers: {
+            'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+            'x-rapidapi-host': 'jsearch.p.rapidapi.com'
+          },
+          timeout: 25000
+        });
 
+        if (rapidResponse.data && rapidResponse.data.data && Array.isArray(rapidResponse.data.data) && rapidResponse.data.data.length > 0) {
+          rawJobs = rapidResponse.data.data;
+        } else {
+          const fallbackQuery = `Developer in ${location}`;
+          console.log(`⚠️ Primary query returned 0 jobs. Trying fallback query: "${fallbackQuery}"...`);
+          rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
+            params: { query: fallbackQuery, page: '1', num_pages: '2' },
+            headers: {
+              'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+              'x-rapidapi-host': 'jsearch.p.rapidapi.com'
+            },
+            timeout: 25000
+          });
+          if (rapidResponse.data && rapidResponse.data.data) {
+            rawJobs = rapidResponse.data.data;
+          }
+        }
+
+        console.log(`✅ RapidAPI JSearch returned ${rawJobs.length} REAL live job listings!`);
+      } catch (rapidErr) {
+        console.error('RapidAPI error:', rapidErr.response ? rapidErr.response.data : rapidErr.message);
+      }
+    }
+
+    // 3. Process & Format Live RapidAPI Jobs with REAL Posting Times & Dynamic Skill Overview Extraction
     let processedJobs = [];
 
     if (rawJobs.length > 0) {
@@ -947,11 +1048,11 @@ Jobs: ${JSON.stringify(rawJobs.slice(0, 20).map(j => ({ id: j.job_id, title: j.j
 
 Return a valid JSON object with key "jobs": an array with one scored entry for EVERY job listed above (do not omit any). Each object must have keys: job_id, match_score (0-100), why_matched, matching_skills (array), missing_skills (array), recommendation.
 Include all jobs with match_score >= ${MIN_MATCH_SCORE}. Score honestly — partial matches can be 30-60%.
-CRITICAL INSTRUCTION FOR why_matched: Write a comprehensive explanation for each job analyzing candidate alignment with this role (any field: medical, engineering, IT, business, etc.), matched skills, role suitability, skill gaps, and hiring recommendations.`;
+CRITICAL INSTRUCTION FOR why_matched: Write a comprehensive, detailed 5-line (4 to 5 sentences) explanation for each job analyzing candidate technical alignment, matched skills, role suitability, skill gaps, and hiring recommendations.`;
 
           const aiResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
             model: 'gpt-4o-mini',
-            messages: [{ role: 'system', content: 'You are an AI Job Matching Engine for all professions (medical, engineering, IT, business, etc.).' }, { role: 'user', content: prompt }],
+            messages: [{ role: 'system', content: 'You are an AI Job Matching Engine.' }, { role: 'user', content: prompt }],
             response_format: { type: 'json_object' }
           }, {
             headers: {
@@ -976,7 +1077,7 @@ CRITICAL INSTRUCTION FOR why_matched: Write a comprehensive explanation for each
           job.job_posted_at_timestamp
         );
 
-        const skillAnalysis = extractAndMatchJobSkills(job, fullProfile.topSkills, fullProfile.title);
+        const skillAnalysis = extractAndMatchJobSkills(job, fullProfile.topSkills);
         const score = aiItem.match_score || skillAnalysis.matchScore;
 
         const cleanTitle = encodeURIComponent(`${job.job_title || fullProfile.title} ${job.employer_name || ''}`);
@@ -1152,7 +1253,7 @@ Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location"
           explanation: {
             why_matched: `Solid partial alignment for ${fullProfile.name} with transferable skills in ${topSkillsList.slice(0, 2).join(' and ')}.`,
             matching_skills: topSkillsList.slice(0, 2),
-            missing_skills: ['AWS DevOps'],
+            missing_skills: topSkillsList.slice(2, 4),
             recommendation: 'Worth applying while building missing skills.'
           }
         },
@@ -1249,7 +1350,7 @@ app.post('/api/search-jobs', async (req, res) => {
 
     if (!skill || skill.length < 2) {
       return res.status(400).json({
-        error: 'Please enter a skill or role to search (e.g. Civil Engineer, Nursing, Accountant).',
+        error: 'Please enter a skill to search (e.g. Python, React, Data Analyst).',
         code: 'MISSING_SKILL',
       });
     }
@@ -1268,7 +1369,7 @@ app.post('/api/search-jobs', async (req, res) => {
 
     console.log(`🔍 Skill search: "${skill}" in ${location} → query: "${searchQuery}"`);
 
-    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config, fullProfile.title);
+    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config);
 
     if (rawJobs.length > 0) {
       const contextText = `Searching for ${skill} jobs in ${location}. Skills: ${fullProfile.topSkills.map((s) => s.name).join(', ')}`;

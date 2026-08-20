@@ -139,84 +139,6 @@ export const SAMPLE_RESUMES = {
       strengthAreas: ["React & Node.js", "Django & Scikit-Learn", "PostgreSQL", "REST API Development"],
       weaknessAreas: ["Kubernetes", "AWS Infrastructure"]
     }
-  },
-
-  civilEngineer: {
-    id: "cv-civil",
-    name: "Omar Hassan",
-    title: "Civil Engineer — Structural & Site",
-    email: "omar.hassan@example.com",
-    phone: "+92 333 4455667",
-    location: "Lahore, Pakistan",
-    summary: "Civil engineer with 5 years of experience in structural design, site supervision, AutoCAD drafting, and quantity surveying for commercial and residential projects.",
-    experienceLevel: "Mid-Level (5 Years)",
-    targetRole: "Civil Engineer",
-    topSkills: [
-      { name: "AutoCAD", rating: 94, category: "Civil Engineering" },
-      { name: "Structural Design", rating: 90, category: "Civil Engineering" },
-      { name: "Site Supervision", rating: 88, category: "Civil Engineering" },
-      { name: "Quantity Surveying", rating: 85, category: "Civil Engineering" },
-      { name: "Revit / BIM", rating: 82, category: "Civil Engineering" }
-    ],
-    experience: [
-      {
-        role: "Site Engineer",
-        company: "Al Noor Construction",
-        period: "2021 - Present",
-        description: "Supervised multi-storey building projects, coordinated structural drawings, and managed BOQ preparation."
-      }
-    ],
-    education: [
-      {
-        degree: "B.Sc. Civil Engineering",
-        institution: "University of Engineering & Technology (UET)",
-        year: "2015 - 2019",
-        honors: "Dean's List"
-      }
-    ],
-    insights: {
-      matchScoreBoosters: ["Add PMP or safety certification keywords for senior site roles"],
-      strengthAreas: ["AutoCAD", "Structural Design", "Site Supervision"]
-    }
-  },
-
-  medicalDoctor: {
-    id: "cv-med",
-    name: "Dr. Ayesha Malik",
-    title: "Medical Doctor — General Practice",
-    email: "ayesha.malik@example.com",
-    phone: "+971 50 1234567",
-    location: "Dubai, UAE",
-    summary: "MBBS-qualified physician with clinical experience in patient care, diagnosis, emergency medicine, and electronic health records in hospital settings.",
-    experienceLevel: "Mid-Level (4 Years)",
-    targetRole: "Medical Doctor",
-    topSkills: [
-      { name: "Clinical Diagnosis", rating: 95, category: "Healthcare" },
-      { name: "Patient Care", rating: 93, category: "Healthcare" },
-      { name: "ICU / Emergency Care", rating: 88, category: "Healthcare" },
-      { name: "Electronic Health Records", rating: 85, category: "Healthcare" },
-      { name: "Medical Laboratory", rating: 80, category: "Healthcare" }
-    ],
-    experience: [
-      {
-        role: "Medical Officer",
-        company: "City General Hospital",
-        period: "2022 - Present",
-        description: "Managed outpatient consultations, emergency triage, and coordinated with lab and radiology departments."
-      }
-    ],
-    education: [
-      {
-        degree: "MBBS",
-        institution: "Aga Khan University",
-        year: "2014 - 2019",
-        honors: "Gold Medal — Internal Medicine Rotation"
-      }
-    ],
-    insights: {
-      matchScoreBoosters: ["Highlight specialty training or board certification for consultant roles"],
-      strengthAreas: ["Clinical Diagnosis", "Patient Care", "Emergency Medicine"]
-    }
   }
 };
 
@@ -277,39 +199,5 @@ Creator - Social Media Scheduler | UIC Project | 2019 - 2020
 Designed Django-and-Node scheduling tool with scikit-learn engagement model.
 
 EDUCATION
-B.S. Computer Science (GPA: 3.9) | University of Illinois Chicago | 2016 - 2020`,
-
-  civilEngineer: `Omar Hassan
-Civil Engineer — Structural & Site
-omar.hassan@example.com | +92 333 4455667 | Lahore, Pakistan
-
-SUMMARY
-Civil engineer with experience in structural design, site supervision, AutoCAD, quantity surveying, and Revit BIM for commercial projects.
-
-SKILLS
-AutoCAD, Structural Design, Site Supervision, Quantity Surveying, Revit, BIM, Concrete Technology, Highway Engineering, Project Management
-
-EXPERIENCE
-Site Engineer | Al Noor Construction | 2021 - Present
-Supervised building projects, structural drawings, and BOQ preparation.
-
-EDUCATION
-B.Sc. Civil Engineering | UET Lahore | 2015 - 2019`,
-
-  medicalDoctor: `Dr. Ayesha Malik
-Medical Doctor — General Practice
-ayesha.malik@example.com | +971 50 1234567 | Dubai, UAE
-
-SUMMARY
-MBBS physician with experience in patient care, clinical diagnosis, emergency medicine, and hospital EHR systems.
-
-SKILLS
-Clinical Diagnosis, Patient Care, ICU, Emergency Medicine, Medical Laboratory, Radiology, Pharmacy, Electronic Health Records
-
-EXPERIENCE
-Medical Officer | City General Hospital | 2022 - Present
-Outpatient consultations, emergency triage, lab and radiology coordination.
-
-EDUCATION
-MBBS | Aga Khan University | 2014 - 2019`
+B.S. Computer Science (GPA: 3.9) | University of Illinois Chicago | 2016 - 2020`
 };
