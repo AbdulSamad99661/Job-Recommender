@@ -29,11 +29,11 @@ export default function HomeDashboard({
         <div className="hero-content">
           <div className="hero-eyebrow">
             <Sparkles size={14} />
-            Smart job matching for tech careers
+            Smart job matching for every profession
           </div>
           <h1>Hi {firstName}, find your next role</h1>
           <p>
-            Upload your resume and get matched with live job listings across Dubai, Pakistan, India, and remote roles — with clear skill scores and apply links.
+            Upload your resume and get matched with live job listings across Dubai, Pakistan, India, and remote — whether you're in IT, engineering, medical, business, or any other field.
           </p>
           
           <div className="hero-actions">

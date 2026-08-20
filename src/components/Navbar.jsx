@@ -29,7 +29,7 @@ export default function Navbar({
 
         <div className="navbar-page-title">
           <h2>{PAGE_TITLES[activeTab] || 'Job Recommender'}</h2>
-          <p>AI-powered resume matching</p>
+          <p>AI-powered job matching for all professions</p>
         </div>
       </div>
 

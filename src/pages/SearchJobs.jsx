@@ -18,7 +18,7 @@ const LOCATIONS = [
   { id: 'India', label: 'India 🇮🇳' },
 ];
 
-const QUICK_SKILLS = ['Python', 'React', 'Node.js', 'Data Analyst', 'Machine Learning', 'SQL', 'Java', 'DevOps'];
+const QUICK_SKILLS = ['Python', 'Civil Engineer', 'Registered Nurse', 'Mechanical Engineer', 'Accountant', 'Data Analyst', 'Pharmacist', 'Project Manager'];
 
 const DATA_SOURCE_LABELS = {
   rapidapi: 'Live listings via RapidAPI',
@@ -38,7 +38,7 @@ export default function SearchJobs({ onApplyJob }) {
     e?.preventDefault();
     const query = skill.trim();
     if (query.length < 2) {
-      setError({ title: 'Enter a skill', message: 'Type a skill like Python, React, or Data Analyst.', type: 'warning' });
+      setError({ title: 'Enter a skill', message: 'Type a skill or role — e.g. Civil Engineer, Nursing, Python, Accountant.', type: 'warning' });
       return;
     }
 
@@ -94,7 +94,7 @@ export default function SearchJobs({ onApplyJob }) {
           <input
             type="text"
             className="filter-input search-jobs-input"
-            placeholder="e.g. Python, React, Data Analyst, Machine Learning"
+            placeholder="e.g. Civil Engineer, Nursing, Python, Accountant, Pharmacist"
             value={skill}
             onChange={(e) => setSkill(e.target.value)}
             disabled={isLoading}
@@ -195,7 +195,7 @@ export default function SearchJobs({ onApplyJob }) {
             <Search size={32} />
           </div>
           <h3>Search by Skill</h3>
-          <p>Enter a technology or role — e.g. <strong>Python</strong>, <strong>React</strong>, or <strong>Data Analyst</strong> — and pick a location.</p>
+          <p>Enter a skill or job title — e.g. <strong>Civil Engineer</strong>, <strong>Nursing</strong>, or <strong>Accountant</strong> — and pick a location.</p>
         </div>
       )}
     </div>
