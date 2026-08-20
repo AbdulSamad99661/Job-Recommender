@@ -745,6 +745,174 @@ function buildTargetedSearchQuery(profile, targetLocation) {
   return `${cleanTitle} in ${targetLocation}`;
 }
 
+const ALLOWED_SEARCH_LOCATIONS = ['India', 'Pakistan', 'Dubai'];
+
+function buildSkillSearchQuery(skill, location) {
+  const cleanSkill = skill.replace(/[^a-zA-Z0-9\s+#.]/g, '').trim();
+  const region = location === 'Dubai' ? 'Dubai UAE' : location;
+  return `${cleanSkill} jobs in ${region}`;
+}
+
+function buildProfileFromSkillInput(skill, location) {
+  const skillNames = skill
+    .split(/[,;|/]+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 1);
+
+  const primary = skillNames[0] || skill.trim();
+
+  return {
+    name: 'Skill Search User',
+    title: `${primary} Professional`,
+    topSkills: (skillNames.length ? skillNames : [primary]).map((name) => ({
+      name,
+      rating: 90,
+      category: 'Skill Search',
+    })),
+    location,
+  };
+}
+
+async function fetchRapidApiJobs(searchQuery, location, config) {
+  if (!config.has_rapidapi) return [];
+
+  try {
+    console.log(`📡 Querying RapidAPI JSearch for: "${searchQuery}"...`);
+    let rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
+      params: {
+        query: searchQuery,
+        page: '1',
+        num_pages: '2',
+      },
+      headers: {
+        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+      },
+      timeout: 25000,
+    });
+
+    if (rapidResponse.data?.data?.length > 0) {
+      return rapidResponse.data.data;
+    }
+
+    const fallbackQuery = `Developer in ${location}`;
+    console.log(`⚠️ Primary query returned 0 jobs. Trying fallback: "${fallbackQuery}"...`);
+    rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
+      params: { query: fallbackQuery, page: '1', num_pages: '2' },
+      headers: {
+        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+      },
+      timeout: 25000,
+    });
+
+    return rapidResponse.data?.data || [];
+  } catch (rapidErr) {
+    console.error('RapidAPI error:', rapidErr.response ? rapidErr.response.data : rapidErr.message);
+    return [];
+  }
+}
+
+function mapRawJobsToProcessed(rawJobs, fullProfile, location, aiScores = []) {
+  return rawJobs.slice(0, 20).map((job, idx) => {
+    const aiItem = aiScores.find((s) => s.job_id === job.job_id) || aiScores[idx] || {};
+    const postedTimeAgo = calculateRelativePostingTime(
+      job.job_posted_at_datetime_utc,
+      job.job_posted_at_timestamp
+    );
+    const skillAnalysis = extractAndMatchJobSkills(job, fullProfile.topSkills);
+    const score = aiItem.match_score || skillAnalysis.matchScore;
+
+    const cleanTitle = encodeURIComponent(`${job.job_title || fullProfile.title} ${job.employer_name || ''}`);
+    const platformLinks = [
+      `https://www.indeed.com/jobs?q=${cleanTitle}`,
+      `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${cleanTitle}`,
+      `https://www.google.com/search?q=${cleanTitle}+jobs`,
+      `https://www.ziprecruiter.com/candidate/search?search=${cleanTitle}`,
+      `https://www.linkedin.com/jobs/search/?keywords=${cleanTitle}`,
+    ];
+
+    let applyLink = job.job_apply_link;
+    if (!applyLink && Array.isArray(job.job_apply_options) && job.job_apply_options.length > 0) {
+      applyLink = job.job_apply_options[0].apply_link;
+    }
+    if (!applyLink || !applyLink.startsWith('http')) {
+      applyLink = platformLinks[idx % platformLinks.length];
+    }
+
+    const publisherName =
+      job.job_publisher ||
+      (Array.isArray(job.job_apply_options) && job.job_apply_options[0]?.publisher) ||
+      ['Indeed', 'Glassdoor', 'Google Jobs', 'ZipRecruiter', 'LinkedIn'][idx % 5];
+
+    const postedDate = job.job_posted_at_datetime_utc
+      ? new Date(job.job_posted_at_datetime_utc).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0];
+
+    return {
+      job_id: job.job_id || `live_job_${idx + 1}`,
+      title: job.job_title || `${fullProfile.title} - ${location}`,
+      company: job.employer_name || 'Enterprise Employer',
+      location: job.job_city ? `${job.job_city}, ${job.job_country || location}` : (job.job_country || location),
+      city: job.job_city || location,
+      country: location,
+      is_remote: job.job_is_remote || false,
+      posted_date: postedDate,
+      posted_time_ago: postedTimeAgo,
+      salary: job.job_min_salary ? `$${job.job_min_salary} - $${job.job_max_salary}` : 'Competitive Salary',
+      apply_link: applyLink,
+      source_platform: `${publisherName} (via RapidAPI)`,
+      match_score: score,
+      match_level: score >= 90 ? 'Strong Match' : score >= 60 ? 'Good Match' : 'Moderate Match',
+      explanation: {
+        why_matched: aiItem.why_matched || skillAnalysis.whyMatched,
+        matching_skills: aiItem.matching_skills || skillAnalysis.matchedSkills,
+        missing_skills: aiItem.missing_skills || skillAnalysis.missingSkills,
+        recommendation: aiItem.recommendation || `Recommended to apply on ${publisherName}.`,
+      },
+    };
+  });
+}
+
+async function scoreJobsWithOpenAI(rawJobs, fullProfile, contextText, config) {
+  if (!config.has_openai || rawJobs.length === 0) return [];
+
+  try {
+    const prompt = `Analyze this candidate profile and score match against these ${rawJobs.length} live jobs:
+Candidate: ${fullProfile.name} (${fullProfile.title}, Skills: ${fullProfile.topSkills.map((s) => s.name).join(', ')})
+Context: ${contextText.substring(0, 800)}
+Jobs: ${JSON.stringify(rawJobs.slice(0, 20).map((j) => ({ id: j.job_id, title: j.job_title, company: j.employer_name, desc: j.job_description ? j.job_description.substring(0, 200) : '' })))}
+
+Return a valid JSON object with key "jobs": an array with one scored entry for EVERY job listed above. Each object: job_id, match_score (0-100), why_matched, matching_skills, missing_skills, recommendation.
+Include jobs with match_score >= ${MIN_MATCH_SCORE}. Partial skill matches can score 30-60%.`;
+
+    const aiResponse = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are an AI Job Matching Engine.' },
+          { role: 'user', content: prompt },
+        ],
+        response_format: { type: 'json_object' },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 8000,
+      }
+    );
+
+    const parsed = JSON.parse(aiResponse.data.choices[0].message.content);
+    return parsed.jobs || parsed.results || [];
+  } catch (aiErr) {
+    console.warn('OpenAI scoring skipped or timed out:', aiErr.message);
+    return [];
+  }
+}
+
 /**
  * POST /api/recommend-jobs
  * REAL DATA ONLY - Accepts PDF resume upload + target location ("India", "Pakistan", "Dubai", "Remote")
@@ -1161,6 +1329,139 @@ Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location"
     console.error('Error in /api/recommend-jobs:', error);
     res.status(500).json({
       error: 'Failed to process live job recommendations',
+      code: 'INTERNAL_ERROR',
+      details: error.message,
+      config_status: getConfigStatus(),
+    });
+  }
+});
+
+/**
+ * POST /api/search-jobs
+ * Skill-based live job search (no CV required)
+ * Body: { skill: "Python", location: "India" | "Pakistan" | "Dubai" }
+ */
+app.post('/api/search-jobs', async (req, res) => {
+  const config = getConfigStatus();
+
+  try {
+    const skill = (req.body.skill || '').trim();
+    const location = req.body.location || 'Dubai';
+
+    if (!skill || skill.length < 2) {
+      return res.status(400).json({
+        error: 'Please enter a skill to search (e.g. Python, React, Data Analyst).',
+        code: 'MISSING_SKILL',
+      });
+    }
+
+    if (!ALLOWED_SEARCH_LOCATIONS.includes(location)) {
+      return res.status(400).json({
+        error: `Location must be one of: ${ALLOWED_SEARCH_LOCATIONS.join(', ')}`,
+        code: 'INVALID_LOCATION',
+      });
+    }
+
+    const fullProfile = buildProfileFromSkillInput(skill, location);
+    const searchQuery = buildSkillSearchQuery(skill, location);
+    let dataSource = 'unknown';
+    let processedJobs = [];
+
+    console.log(`🔍 Skill search: "${skill}" in ${location} → query: "${searchQuery}"`);
+
+    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config);
+
+    if (rawJobs.length > 0) {
+      const contextText = `Searching for ${skill} jobs in ${location}. Skills: ${fullProfile.topSkills.map((s) => s.name).join(', ')}`;
+      const aiScores = await scoreJobsWithOpenAI(rawJobs, fullProfile, contextText, config);
+      processedJobs = mapRawJobsToProcessed(rawJobs, fullProfile, location, aiScores);
+      dataSource = 'rapidapi';
+    }
+
+    if (processedJobs.length === 0 && config.has_openai) {
+      try {
+        const aiGenResponse = await axios.post(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: 'You are an expert AI Job Recommender.' },
+              {
+                role: 'user',
+                content: `Generate 8 realistic ${skill} job postings in ${location}.
+Each job must have match_score between ${MIN_MATCH_SCORE} and 98.
+Return JSON: {"jobs": [{"title":"...","company":"...","location":"${location}","city":"...","salary":"...","match_score":72,"why_matched":"...","matching_skills":["..."],"missing_skills":["..."],"apply_link":"https://linkedin.com/jobs","recommendation":"..."}]}`,
+              },
+            ],
+            response_format: { type: 'json_object' },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 10000,
+          }
+        );
+
+        const parsedAI = JSON.parse(aiGenResponse.data.choices[0].message.content);
+        if (parsedAI?.jobs?.length) {
+          processedJobs = parsedAI.jobs.map((j, idx) => ({
+            job_id: `search_job_${idx + 1}`,
+            title: j.title || `${skill} - ${location}`,
+            company: j.company || 'Tech Company',
+            location: j.location || location,
+            city: j.city || location,
+            country: location,
+            is_remote: false,
+            posted_date: new Date().toISOString().split('T')[0],
+            posted_time_ago: 'Posted recently',
+            salary: j.salary || 'Competitive Salary',
+            apply_link: j.apply_link || 'https://www.linkedin.com/jobs',
+            source_platform: 'OpenAI Skill Search',
+            match_score: j.match_score || (85 - idx * 4),
+            match_level: 'Good Match',
+            explanation: {
+              why_matched: j.why_matched || `Live-style match for ${skill} in ${location}.`,
+              matching_skills: j.matching_skills || [skill],
+              missing_skills: j.missing_skills || [],
+              recommendation: j.recommendation || 'Worth applying.',
+            },
+          }));
+          dataSource = 'openai_generated';
+        }
+      } catch (genErr) {
+        console.warn('OpenAI skill search fallback error:', genErr.message);
+      }
+    }
+
+    processedJobs = filterJobsByMinScore(processedJobs);
+    const warnings = buildResponseWarnings(config, dataSource, processedJobs.length);
+
+    if (!config.has_rapidapi) {
+      warnings.push({
+        code: 'NO_RAPIDAPI',
+        message: 'RAPIDAPI_KEY missing. Showing AI-generated results instead of live listings.',
+        severity: 'warning',
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      search_skill: skill,
+      requested_location: location,
+      search_query: searchQuery,
+      total_matches: processedJobs.length,
+      data_source: dataSource,
+      config_status: config,
+      warnings,
+      processed_at: new Date().toISOString(),
+      jobs: processedJobs,
+    });
+  } catch (error) {
+    console.error('Error in /api/search-jobs:', error);
+    res.status(500).json({
+      error: 'Failed to search live jobs',
       code: 'INTERNAL_ERROR',
       details: error.message,
       config_status: getConfigStatus(),

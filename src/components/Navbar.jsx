@@ -4,6 +4,7 @@ import { Menu, Sun, Moon } from 'lucide-react';
 const PAGE_TITLES = {
   home: 'Dashboard',
   upload: 'Upload Resume',
+  search: 'Search Jobs',
   matches: 'Job Matches',
   profile: 'My Profile',
   about: 'How It Works',

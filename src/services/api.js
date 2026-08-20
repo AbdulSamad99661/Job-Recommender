@@ -126,3 +126,46 @@ export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 
     if (progressTimer) clearTimeout(progressTimer);
   }
 }
+
+/**
+ * Search live jobs by skill (no CV required).
+ * @param {string} skill
+ * @param {'India'|'Pakistan'|'Dubai'} location
+ */
+export async function searchJobsBySkill(skill, location = 'Dubai') {
+  try {
+    const response = await fetch(`${API_BASE_URL}/search-jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skill: skill.trim(), location }),
+      signal: AbortSignal.timeout(IS_PRODUCTION ? 55000 : 90000),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new ApiError(data.error || `Server returned status ${response.status}`, {
+        status: response.status,
+        code: data.code || 'SERVER_ERROR',
+        details: data.details,
+        warnings: data.warnings,
+      });
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+
+    if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+      throw new ApiError('Search timed out. Try again or use a shorter skill keyword.', {
+        code: 'TIMEOUT',
+        details: error.message,
+      });
+    }
+
+    throw new ApiError(backendUnreachableMessage(), {
+      code: 'BACKEND_UNREACHABLE',
+      details: error.message,
+    });
+  }
+}
