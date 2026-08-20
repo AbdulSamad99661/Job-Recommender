@@ -89,7 +89,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jo
                 Ready to match
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                Upload a CV to get started — any field
+                Upload a CV to get started
               </div>
             </div>
           </div>
