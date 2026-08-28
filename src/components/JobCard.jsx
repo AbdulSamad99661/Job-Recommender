@@ -15,7 +15,7 @@ import {
   Layers
 } from 'lucide-react';
 
-export default function JobCard({ job, onApply }) {
+export default function JobCard({ job }) {
   const [showExplanation, setShowExplanation] = useState(false);
   const [showKeywordDetails, setShowKeywordDetails] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -30,9 +30,6 @@ export default function JobCard({ job, onApply }) {
     const link = job.applyLink || job.apply_link;
     if (link && (link.startsWith('http://') || link.startsWith('https://'))) {
       window.open(link, '_blank', 'noopener,noreferrer');
-    }
-    if (onApply) {
-      onApply(job);
     }
   };
 

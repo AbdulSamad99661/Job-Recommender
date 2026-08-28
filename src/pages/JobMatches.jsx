@@ -18,7 +18,6 @@ const DATA_SOURCE_LABELS = {
 
 export default function JobMatches({
   jobs,
-  onApplyJob,
   activeLocation = 'Dubai',
   isMatchingLoading = false,
   dataSource = null,
@@ -166,7 +165,7 @@ export default function JobMatches({
       {!isMatchingLoading && filteredJobs.length > 0 && (
         <div>
           {filteredJobs.map((job) => (
-            <JobCard key={job.id} job={job} onApply={onApplyJob} />
+            <JobCard key={job.id} job={job} />
           ))}
         </div>
       )}

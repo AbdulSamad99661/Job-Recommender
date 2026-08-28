@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import SplashLoader from './components/SplashLoader';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
-import ApplyModal from './components/ApplyModal';
 import ErrorBanner from './components/ErrorBanner';
 
 import HomeDashboard from './pages/HomeDashboard';
@@ -25,7 +24,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [resumeKey, setResumeKey] = useState(null);
   const [customResume, setCustomResume] = useState(null);
-  const [selectedApplyJob, setSelectedApplyJob] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [liveJobs, setLiveJobs] = useState([]);
@@ -198,7 +196,6 @@ export default function App() {
               currentResume={currentResume}
               jobs={liveJobs}
               onNavigateTab={(tab) => setActiveTab(tab)}
-              onApplyJob={(job) => setSelectedApplyJob(job)}
             />
           )}
 
@@ -216,7 +213,6 @@ export default function App() {
           {activeTab === 'matches' && (
             <JobMatches
               jobs={liveJobs}
-              onApplyJob={(job) => setSelectedApplyJob(job)}
               activeLocation={activeLocation}
               isMatchingLoading={isMatchingLoading}
               dataSource={dataSource}
@@ -225,7 +221,7 @@ export default function App() {
           )}
 
           {activeTab === 'search' && (
-            <SearchJobs onApplyJob={(job) => setSelectedApplyJob(job)} />
+            <SearchJobs />
           )}
 
           {activeTab === 'profile' && (
@@ -240,14 +236,6 @@ export default function App() {
           )}
         </main>
       </div>
-
-      {selectedApplyJob && (
-        <ApplyModal
-          job={selectedApplyJob}
-          candidate={currentResume}
-          onClose={() => setSelectedApplyJob(null)}
-        />
-      )}
     </div>
   );
 }

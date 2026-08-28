@@ -25,7 +25,7 @@ const DATA_SOURCE_LABELS = {
   openai_generated: 'AI-generated (no live listings found)',
 };
 
-export default function SearchJobs({ onApplyJob }) {
+export default function SearchJobs() {
   const [skill, setSkill] = useState('');
   const [location, setLocation] = useState('Dubai');
   const [jobs, setJobs] = useState([]);
@@ -184,7 +184,7 @@ export default function SearchJobs({ onApplyJob }) {
       {!isLoading && jobs.length > 0 && (
         <div className="search-results-list">
           {jobs.map((job) => (
-            <JobCard key={job.id} job={job} onApply={onApplyJob} />
+            <JobCard key={job.id} job={job} />
           ))}
         </div>
       )}

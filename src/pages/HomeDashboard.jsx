@@ -16,7 +16,6 @@ export default function HomeDashboard({
   currentResume, 
   jobs, 
   onNavigateTab, 
-  onApplyJob 
 }) {
   const topJobs = jobs.slice(0, 3);
   const topScore = jobs[0]?.matchScore ?? null;
@@ -118,7 +117,7 @@ export default function HomeDashboard({
 
           {topJobs.length > 0 ? (
             topJobs.map((job) => (
-              <JobCard key={job.id} job={job} onApply={onApplyJob} />
+              <JobCard key={job.id} job={job} />
             ))
           ) : (
             <div className="empty-state-card">
