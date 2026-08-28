@@ -572,6 +572,48 @@
   border-right: 1px solid var(--border-color);
 }
 
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  width: 100%;
+}
+
+.card-actions > div:last-child {
+  margin-left: auto;
+}
+
+.bookmark-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface-elevated);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.bookmark-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.bookmark-btn.saved {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(14, 165, 233, 0.12);
+}
+
 /* Upload Resume Zone */
 .upload-dropzone {
   border: 2px dashed var(--border-color-strong);
@@ -801,6 +843,21 @@
 
   .btn-primary, .btn-secondary {
     width: 100%;
+  }
+
+  .card-actions .btn-primary,
+  .card-actions .btn-secondary {
+    width: auto;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions > div:last-child {
+    margin-left: 0;
+    justify-content: flex-end;
   }
 
   .badge-chip {
