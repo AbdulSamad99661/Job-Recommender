@@ -35,10 +35,14 @@ export default function App() {
   const [backendConfig, setBackendConfig] = useState(null);
   const [dataSource, setDataSource] = useState(null);
 
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'dark';
+    return window.localStorage.getItem('theme') || 'dark';
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('theme', theme);
   }, [theme]);
 
   useEffect(() => {

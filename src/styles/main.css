@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root, [data-theme="dark"] {
-  /* Dark Theme Palette - Executive AI SaaS Dark Mode */
+  color-scheme: dark;
   --bg-dark: #090D16;
   --bg-surface: #0F172A;
   --bg-surface-elevated: #1E293B;
@@ -35,7 +35,30 @@
   --glass-bg: rgba(15, 23, 42, 0.85);
   --glass-border: rgba(255, 255, 255, 0.1);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --hero-overlay: linear-gradient(135deg, rgba(30, 27, 75, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+  --hero-bg:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(99, 102, 241, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 90% 80%, rgba(14, 165, 233, 0.25) 0%, transparent 50%),
+    linear-gradient(145deg, #1e1b4b 0%, #0f172a 55%, #0c1222 100%);
+  --hero-text: #ffffff;
+  --hero-text-muted: #cbd5e1;
+  --hero-border: rgba(255, 255, 255, 0.08);
+  --hero-eyebrow-text: #c7d2fe;
+  --hero-eyebrow-bg: rgba(255, 255, 255, 0.08);
+  --hero-eyebrow-border: rgba(255, 255, 255, 0.12);
+  --hero-secondary-bg: rgba(255, 255, 255, 0.1);
+  --hero-secondary-text: #ffffff;
+  --hero-secondary-border: rgba(255, 255, 255, 0.25);
+  --hero-secondary-hover: rgba(255, 255, 255, 0.18);
+  --app-bg-accent: radial-gradient(ellipse 50% 40% at 100% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+  --scrollbar-thumb: rgba(148, 163, 184, 0.35);
+  --scrollbar-thumb-hover: rgba(148, 163, 184, 0.55);
+  --surface-hover-subtle: rgba(255, 255, 255, 0.08);
+  --badge-indigo-border: rgba(99, 102, 241, 0.25);
+  --badge-cyan-border: rgba(14, 165, 233, 0.25);
+  --badge-emerald-border: rgba(16, 185, 129, 0.25);
+  --badge-amber-border: rgba(245, 158, 11, 0.25);
+  --nav-active-border: rgba(99, 102, 241, 0.3);
+  --input-bg: var(--bg-surface-elevated);
 }
 
 /* Light Theme Palette - Professional Crisp Day Mode */
@@ -62,9 +85,33 @@
   --text-dim: #64748B;
 
   --glass-bg: rgba(255, 255, 255, 0.95);
-  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border: rgba(15, 23, 42, 0.08);
   --card-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
-  --hero-overlay: linear-gradient(135deg, rgba(79, 70, 229, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+  --hero-bg:
+    radial-gradient(ellipse 85% 65% at 8% 15%, rgba(79, 70, 229, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 92% 85%, rgba(14, 165, 233, 0.12) 0%, transparent 50%),
+    linear-gradient(160deg, #eef2ff 0%, #f8fafc 42%, #ffffff 100%);
+  --hero-text: #0f172a;
+  --hero-text-muted: #475569;
+  --hero-border: #e2e8f0;
+  --hero-eyebrow-text: #4338ca;
+  --hero-eyebrow-bg: rgba(79, 70, 229, 0.08);
+  --hero-eyebrow-border: rgba(79, 70, 229, 0.18);
+  --hero-secondary-bg: #ffffff;
+  --hero-secondary-text: #0f172a;
+  --hero-secondary-border: #cbd5e1;
+  --hero-secondary-hover: #f1f5f9;
+  --app-bg-accent: radial-gradient(ellipse 55% 45% at 100% 0%, rgba(79, 70, 229, 0.07) 0%, transparent 52%);
+  --scrollbar-thumb: rgba(100, 116, 139, 0.35);
+  --scrollbar-thumb-hover: rgba(100, 116, 139, 0.55);
+  --surface-hover-subtle: rgba(15, 23, 42, 0.06);
+  --badge-indigo-border: rgba(79, 70, 229, 0.2);
+  --badge-cyan-border: rgba(2, 132, 199, 0.2);
+  --badge-emerald-border: rgba(5, 150, 105, 0.2);
+  --badge-amber-border: rgba(217, 119, 6, 0.2);
+  --nav-active-border: rgba(79, 70, 229, 0.22);
+  --input-bg: #ffffff;
+  color-scheme: light;
 }
 
 /* CSS Reset & Viewport Lock */
@@ -108,17 +155,17 @@ html, body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.55);
+  background: var(--scrollbar-thumb-hover);
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.35) var(--bg-dark);
+  scrollbar-color: var(--scrollbar-thumb) var(--bg-dark);
 }
 
 /* Helper Tokens */
@@ -148,25 +195,25 @@ html, body {
 .badge-indigo {
   background: var(--primary-light);
   color: var(--primary);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  border: 1px solid var(--badge-indigo-border);
 }
 
 .badge-cyan {
   background: var(--accent-cyan-light);
   color: var(--accent-cyan);
-  border: 1px solid rgba(14, 165, 233, 0.25);
+  border: 1px solid var(--badge-cyan-border);
 }
 
 .badge-emerald {
   background: var(--accent-emerald-light);
   color: var(--accent-emerald);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid var(--badge-emerald-border);
 }
 
 .badge-amber {
   background: var(--accent-amber-light);
   color: var(--accent-amber);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid var(--badge-amber-border);
 }
 
 /* Button styles */
@@ -212,4 +259,24 @@ html, body {
   background: var(--bg-surface-hover);
   border-color: var(--primary);
   color: var(--text-main);
+}
+
+[data-theme="light"] .btn-primary {
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.22);
+}
+
+[data-theme="light"] .btn-primary:hover {
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.28);
+}
+
+[data-theme="light"] .glass-panel {
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .stat-card:hover {
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.1);
+}
+
+[data-theme="light"] .job-card:hover {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
