@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import PDFPreviewModal from '../components/PDFPreviewModal';
 import { SAMPLE_RESUME_TEXT } from '../data/mockResume';
 import {
+  UPLOAD_PRIORITY_LOCATIONS,
+  OTHER_COUNTRIES,
+  DEFAULT_SEARCH_LOCATION,
+  OTHER_COUNTRY_IDS,
+} from '../data/searchCountries';
+import {
   UploadCloud,
   FileText,
   CheckCircle2,
@@ -29,7 +35,7 @@ export default function UploadResume({
   const [fileDetails, setFileDetails] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedSampleKey, setSelectedSampleKey] = useState(null);
-  const [targetLocation, setTargetLocation] = useState('Dubai');
+  const [targetLocation, setTargetLocation] = useState(DEFAULT_SEARCH_LOCATION);
   const [fileError, setFileError] = useState(null);
 
   const isPdfFile = (file) =>
@@ -129,33 +135,52 @@ export default function UploadResume({
           </span>
           <h1>Upload your CV &amp; find jobs</h1>
           <p>
-            Choose a location, upload a PDF or try a sample profile — we'll parse your skills and match you with live listings.
+            Choose a location (Dubai, Pakistan, India, Remote, or 100+ countries), upload a PDF or try a sample profile — we'll parse your skills and match you with live listings.
           </p>
         </div>
 
         {/* Location picker */}
         <div className="location-picker-card">
-          <div className="location-picker-inner">
-            <div>
-              <label className="location-picker-label">
-                <Globe size={18} color="var(--accent-cyan)" />
-                Target Job Location
-              </label>
-              <p className="location-picker-hint">Where to search for live job listings</p>
-            </div>
-            <div className="location-btn-group">
-              {['Dubai', 'Pakistan', 'India', 'Remote'].map((loc) => (
-                <button
-                  key={loc}
-                  type="button"
-                  className={`location-btn ${targetLocation === loc ? 'active' : ''}`}
-                  onClick={() => setTargetLocation(loc)}
-                  disabled={isMatchingLoading}
-                >
-                  {loc === 'Dubai' ? '🇦🇪 Dubai' : loc === 'Pakistan' ? '🇵🇰 Pakistan' : loc === 'India' ? '🇮🇳 India' : '🌐 Remote'}
-                </button>
+          <div className="location-picker-header">
+            <label className="location-picker-label">
+              <Globe size={18} color="var(--accent-cyan)" />
+              Target Job Location
+            </label>
+            <p className="location-picker-hint">Where to search for live job listings</p>
+          </div>
+
+          <div className="search-location-pills upload-location-pills">
+            {UPLOAD_PRIORITY_LOCATIONS.map((loc) => (
+              <button
+                key={loc.id}
+                type="button"
+                className={`location-pill ${targetLocation === loc.id ? 'active' : ''}`}
+                onClick={() => setTargetLocation(loc.id)}
+                disabled={isMatchingLoading}
+              >
+                {loc.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="search-location-select-wrap">
+            <Globe size={16} className="search-location-select-icon" />
+            <select
+              className="filter-input search-location-select"
+              value={OTHER_COUNTRY_IDS.has(targetLocation) ? targetLocation : ''}
+              onChange={(e) => {
+                if (e.target.value) setTargetLocation(e.target.value);
+              }}
+              disabled={isMatchingLoading}
+              aria-label="Select another country"
+            >
+              <option value="">Other countries ({OTHER_COUNTRIES.length}+)</option>
+              {OTHER_COUNTRIES.map((country) => (
+                <option key={country.id} value={country.id}>
+                  {country.label}
+                </option>
               ))}
-            </div>
+            </select>
           </div>
         </div>
 

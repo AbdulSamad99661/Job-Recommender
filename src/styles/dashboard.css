@@ -2062,12 +2062,12 @@
   box-shadow: var(--card-shadow);
 }
 
-.location-picker-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
+.location-picker-header {
+  margin-bottom: 14px;
+}
+
+.upload-location-pills {
+  margin-bottom: 12px;
 }
 
 .location-picker-label {
@@ -2409,19 +2409,9 @@
     width: 100%;
   }
 
-  .location-picker-inner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .location-btn-group {
+  .location-picker-inner,
+  .upload-location-pills {
     width: 100%;
-  }
-
-  .location-btn {
-    flex: 1;
-    min-width: calc(50% - 5px);
-    text-align: center;
   }
 
   .active-file-inner {

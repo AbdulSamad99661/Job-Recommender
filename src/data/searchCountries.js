@@ -119,6 +119,12 @@ export const OTHER_COUNTRIES = [
   { id: 'Zimbabwe', label: 'Zimbabwe 🇿🇼' },
 ];
 
+/** Remote work option (upload / job matching) */
+export const REMOTE_LOCATION = { id: 'Remote', label: 'Remote 🌐' };
+
+/** Upload page priority pills: Dubai, Pakistan, India + Remote */
+export const UPLOAD_PRIORITY_LOCATIONS = [...PRIORITY_LOCATIONS, REMOTE_LOCATION];
+
 export const SEARCH_COUNTRIES = [...PRIORITY_LOCATIONS, ...OTHER_COUNTRIES];
 
 export const SEARCH_COUNTRY_IDS = SEARCH_COUNTRIES.map((c) => c.id);
