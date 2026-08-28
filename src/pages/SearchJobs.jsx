@@ -10,13 +10,14 @@ import {
   Sparkles,
   Loader2,
   Briefcase,
+  Globe,
 } from 'lucide-react';
-
-const LOCATIONS = [
-  { id: 'Dubai', label: 'Dubai 🇦🇪' },
-  { id: 'Pakistan', label: 'Pakistan 🇵🇰' },
-  { id: 'India', label: 'India 🇮🇳' },
-];
+import {
+  PRIORITY_LOCATIONS,
+  OTHER_COUNTRIES,
+  DEFAULT_SEARCH_LOCATION,
+  OTHER_COUNTRY_IDS,
+} from '../data/searchCountries';
 
 const QUICK_SKILLS = ['Python', 'React', 'Node.js', 'Data Analyst', 'Machine Learning', 'SQL', 'Java', 'DevOps'];
 
@@ -27,7 +28,7 @@ const DATA_SOURCE_LABELS = {
 
 export default function SearchJobs() {
   const [skill, setSkill] = useState('');
-  const [location, setLocation] = useState('Dubai');
+  const [location, setLocation] = useState(DEFAULT_SEARCH_LOCATION);
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -85,7 +86,7 @@ export default function SearchJobs() {
           Live Skill Search
         </div>
         <h1>Search Jobs by Skill</h1>
-        <p>Find live jobs in India, Pakistan, or Dubai — no CV upload needed.</p>
+        <p>Find live jobs in Dubai, Pakistan, India, and 100+ countries — no CV upload needed.</p>
       </div>
 
       <form className="search-jobs-form glass-panel" onSubmit={handleSearch}>
@@ -106,7 +107,7 @@ export default function SearchJobs() {
             <MapPin size={14} /> Location
           </span>
           <div className="search-location-pills">
-            {LOCATIONS.map((loc) => (
+            {PRIORITY_LOCATIONS.map((loc) => (
               <button
                 key={loc.id}
                 type="button"
@@ -117,6 +118,25 @@ export default function SearchJobs() {
                 {loc.label}
               </button>
             ))}
+          </div>
+          <div className="search-location-select-wrap">
+            <Globe size={16} className="search-location-select-icon" />
+            <select
+              className="filter-input search-location-select"
+              value={OTHER_COUNTRY_IDS.has(location) ? location : ''}
+              onChange={(e) => {
+                if (e.target.value) setLocation(e.target.value);
+              }}
+              disabled={isLoading}
+              aria-label="Select another country"
+            >
+              <option value="">Other countries ({OTHER_COUNTRIES.length}+)</option>
+              {OTHER_COUNTRIES.map((country) => (
+                <option key={country.id} value={country.id}>
+                  {country.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

@@ -130,7 +130,7 @@ export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 
 /**
  * Search live jobs by skill (no CV required).
  * @param {string} skill
- * @param {'India'|'Pakistan'|'Dubai'} location
+ * @param {string} location Country or city name from the search list
  */
 export async function searchJobsBySkill(skill, location = 'Dubai') {
   try {

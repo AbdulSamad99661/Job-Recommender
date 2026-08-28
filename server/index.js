@@ -6,6 +6,7 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { SEARCH_COUNTRY_IDS } from '../src/data/searchCountries.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -745,11 +746,17 @@ function buildTargetedSearchQuery(profile, targetLocation) {
   return `${cleanTitle} in ${targetLocation}`;
 }
 
-const ALLOWED_SEARCH_LOCATIONS = ['India', 'Pakistan', 'Dubai'];
+const ALLOWED_SEARCH_LOCATIONS = SEARCH_COUNTRY_IDS;
+
+const SEARCH_REGION_ALIASES = {
+  Dubai: 'Dubai UAE',
+  'United States': 'USA',
+  'United Kingdom': 'UK',
+};
 
 function buildSkillSearchQuery(skill, location) {
   const cleanSkill = skill.replace(/[^a-zA-Z0-9\s+#.]/g, '').trim();
-  const region = location === 'Dubai' ? 'Dubai UAE' : location;
+  const region = SEARCH_REGION_ALIASES[location] || location;
   return `${cleanSkill} jobs in ${region}`;
 }
 
@@ -1339,7 +1346,7 @@ Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location"
 /**
  * POST /api/search-jobs
  * Skill-based live job search (no CV required)
- * Body: { skill: "Python", location: "India" | "Pakistan" | "Dubai" }
+ * Body: { skill: "Python", location: "<country name>" }
  */
 app.post('/api/search-jobs', async (req, res) => {
   const config = getConfigStatus();
@@ -1357,7 +1364,7 @@ app.post('/api/search-jobs', async (req, res) => {
 
     if (!ALLOWED_SEARCH_LOCATIONS.includes(location)) {
       return res.status(400).json({
-        error: `Location must be one of: ${ALLOWED_SEARCH_LOCATIONS.join(', ')}`,
+        error: 'Invalid location. Choose Dubai, Pakistan, India, or another country from the search list.',
         code: 'INVALID_LOCATION',
       });
     }
