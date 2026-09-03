@@ -8,7 +8,12 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
-function isEmailConfigured() {
+function isSendGridConfigured() {
+  const key = process.env.SENDGRID_API_KEY;
+  return Boolean(key && key !== 'your_sendgrid_api_key_here');
+}
+
+function isSmtpConfigured() {
   return Boolean(
     process.env.SMTP_USER &&
     process.env.SMTP_PASS &&
@@ -16,8 +21,19 @@ function isEmailConfigured() {
   );
 }
 
+export function isEmailConfigured() {
+  return isSendGridConfigured() || isSmtpConfigured();
+}
+
+function getFromIdentity() {
+  return {
+    fromName: process.env.EMAIL_FROM_NAME || process.env.SMTP_FROM_NAME || 'JobMatch',
+    fromEmail: process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER,
+  };
+}
+
 function getTransporter() {
-  if (!isEmailConfigured()) return null;
+  if (!isSmtpConfigured()) return null;
 
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -28,6 +44,30 @@ function getTransporter() {
       pass: process.env.SMTP_PASS,
     },
   });
+}
+
+async function sendViaSendGrid({ to, fromEmail, fromName, subject, html, text }) {
+  const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: fromEmail, name: fromName },
+      subject,
+      content: [
+        { type: 'text/plain', value: text },
+        { type: 'text/html', value: html },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`SendGrid error (${res.status}): ${errText}`);
+  }
 }
 
 export function buildSavedJobEmail({ recipientName, job, status = 'Saved' }) {
@@ -142,14 +182,21 @@ export function buildSavedJobEmail({ recipientName, job, status = 'Saved' }) {
 }
 
 export async function sendSavedJobEmail({ to, recipientName, job, status = 'Saved' }) {
-  const transporter = getTransporter();
-  if (!transporter) {
-    return { sent: false, reason: 'SMTP not configured' };
+  const { subject, html, text } = buildSavedJobEmail({ recipientName, job, status });
+  const { fromName, fromEmail } = getFromIdentity();
+
+  if (isSendGridConfigured()) {
+    if (!fromEmail) {
+      return { sent: false, reason: 'EMAIL_FROM is required for SendGrid' };
+    }
+    await sendViaSendGrid({ to, fromEmail, fromName, subject, html, text });
+    return { sent: true, provider: 'sendgrid' };
   }
 
-  const fromName = process.env.SMTP_FROM_NAME || 'JobMatch';
-  const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER;
-  const { subject, html, text } = buildSavedJobEmail({ recipientName, job, status });
+  const transporter = getTransporter();
+  if (!transporter) {
+    return { sent: false, reason: 'Email service not configured' };
+  }
 
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,
@@ -159,7 +206,7 @@ export async function sendSavedJobEmail({ to, recipientName, job, status = 'Save
     text,
   });
 
-  return { sent: true };
+  return { sent: true, provider: 'smtp' };
 }
 
-export { isEmailConfigured };
+export { isEmailConfigured, isSendGridConfigured, isSmtpConfigured };

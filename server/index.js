@@ -75,7 +75,7 @@ function buildSetupHints(config) {
     hints.push('Add OPENAI_API_KEY to server/.env for AI-powered CV parsing and match scoring.');
   }
   if (!config.has_email) {
-    hints.push('Add SMTP_USER and SMTP_PASS (Gmail app password) to enable saved-job confirmation emails.');
+    hints.push('Add SENDGRID_API_KEY + EMAIL_FROM (easiest, no Gmail app password) or SMTP_PASS for saved-job emails.');
   }
   return hints;
 }
