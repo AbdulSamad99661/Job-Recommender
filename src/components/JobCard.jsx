@@ -61,7 +61,7 @@ export default function JobCard({ job, onNavigateTab }) {
         if (result.emailSent) {
           setSaveNotice('Saved · Confirmation email sent');
         } else {
-          setSaveNotice('Saved to your account');
+          setSaveNotice('Saved · Email not sent (fix Brevo key in Vercel)');
         }
         setTimeout(() => setSaveNotice(null), 4000);
       }

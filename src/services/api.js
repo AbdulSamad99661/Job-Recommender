@@ -188,7 +188,7 @@ export async function notifySavedJobEmail(job, idToken, { recipientName, status 
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      return { sent: false, reason: data.error || 'Email could not be sent.' };
+      return { sent: false, reason: data.details || data.error || 'Email could not be sent.' };
     }
 
     return { sent: Boolean(data.email_sent), reason: null };

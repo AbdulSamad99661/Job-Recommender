@@ -125,6 +125,7 @@ export function AuthProvider({ children }) {
     await refreshUserData(user.uid);
 
     let emailSent = false;
+    let emailError = null;
     try {
       const idToken = await user.getIdToken();
       const emailResult = await notifySavedJobEmail(job, idToken, {
@@ -132,11 +133,16 @@ export function AuthProvider({ children }) {
         status,
       });
       emailSent = emailResult.sent;
+      emailError = emailResult.reason;
+      if (!emailSent && emailResult.reason) {
+        console.warn('Saved job email failed:', emailResult.reason);
+      }
     } catch (err) {
+      emailError = err.message;
       console.warn('Saved job email failed:', err);
     }
 
-    return { jobDocId, emailSent };
+    return { jobDocId, emailSent, emailError };
   }, [user, profile, refreshUserData]);
 
   const unsaveJob = useCallback(async (jobDocId) => {
