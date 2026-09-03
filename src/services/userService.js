@@ -71,12 +71,12 @@ export async function upsertUserProfile(uid, data) {
   }
 }
 
-export async function createUserProfile(uid, { email, displayName }) {
+export async function createUserProfile(uid, { email, displayName, defaultCountry, targetRole }) {
   await setDoc(userRef(uid), {
     email: email || '',
     displayName: displayName || '',
-    defaultCountry: DEFAULT_SEARCH_LOCATION,
-    targetRole: 'Software Engineer',
+    defaultCountry: defaultCountry || DEFAULT_SEARCH_LOCATION,
+    targetRole: targetRole || 'Software Engineer',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

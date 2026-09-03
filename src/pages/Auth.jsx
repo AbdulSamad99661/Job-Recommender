@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAuthErrorMessage } from '../utils/authErrors';
 import { DEFAULT_SEARCH_LOCATION } from '../data/searchCountries';
@@ -22,7 +22,7 @@ const MODES = {
 };
 
 export default function Auth({ onNavigateTab }) {
-  const { signIn, signUp, resetPassword, updateProfileSettings, isFirebaseConfigured, authError, setAuthError } = useAuth();
+  const { signIn, signUp, resetPassword, isAuthenticated, loading, isFirebaseConfigured, authError, setAuthError } = useAuth();
   const [mode, setMode] = useState(MODES.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +31,13 @@ export default function Auth({ onNavigateTab }) {
   const [targetRole, setTargetRole] = useState('Software Engineer');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      setAuthError(null);
+      onNavigateTab?.('home');
+    }
+  }, [loading, isAuthenticated, onNavigateTab, setAuthError]);
 
   const switchMode = (next) => {
     setMode(next);
@@ -50,14 +57,12 @@ export default function Auth({ onNavigateTab }) {
         setMessage({ type: 'success', text: 'Welcome back! Redirecting to your dashboard…' });
         setTimeout(() => onNavigateTab?.('home'), 800);
       } else if (mode === MODES.signup) {
-        await signUp(email.trim(), password, displayName.trim());
-        await updateProfileSettings({
-          displayName: displayName.trim(),
+        await signUp(email.trim(), password, displayName.trim(), {
           defaultCountry,
           targetRole: targetRole.trim(),
         });
-        setMessage({ type: 'success', text: 'Account created successfully!' });
-        setTimeout(() => onNavigateTab?.('profile'), 800);
+        setMessage({ type: 'success', text: 'Account created! Redirecting to your dashboard…' });
+        setTimeout(() => onNavigateTab?.('home'), 800);
       } else if (mode === MODES.forgot) {
         await resetPassword(email.trim());
         setMessage({ type: 'success', text: 'Password reset email sent. Check your inbox.' });

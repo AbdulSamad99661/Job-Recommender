@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
     return unsub;
   }, [refreshUserData]);
 
-  const signUp = useCallback(async (email, password, displayName) => {
+  const signUp = useCallback(async (email, password, displayName, profileExtras = {}) => {
     setAuthError(null);
     if (!auth) throw new Error('Firebase Auth is not configured.');
     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -79,7 +79,10 @@ export function AuthProvider({ children }) {
     await createUserProfile(cred.user.uid, {
       email: cred.user.email,
       displayName: displayName?.trim() || '',
+      defaultCountry: profileExtras.defaultCountry,
+      targetRole: profileExtras.targetRole,
     });
+    setUser(cred.user);
     await refreshUserData(cred.user.uid);
     return cred.user;
   }, [refreshUserData]);
