@@ -13,6 +13,8 @@ import {
   filterProcessedJobsByLocation,
   formatJobLocationString,
 } from '../src/data/locationUtils.js';
+import { verifyFirebaseIdToken } from './verifyFirebaseToken.js';
+import { sendSavedJobEmail, isEmailConfigured } from './emailService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +60,7 @@ function getConfigStatus() {
     has_rapidapi: !!(rapidKey && rapidKey !== 'your_rapidapi_key_here'),
     has_openai: !!(openaiKey && openaiKey !== 'your_openai_api_key_here'),
     has_n8n: isN8nConfigured(),
+    has_email: isEmailConfigured(),
     live_jobs_available: !!(rapidKey && rapidKey !== 'your_rapidapi_key_here'),
     ai_parsing_available: !!(openaiKey && openaiKey !== 'your_openai_api_key_here'),
   };
@@ -70,6 +73,9 @@ function buildSetupHints(config) {
   }
   if (!config.has_openai) {
     hints.push('Add OPENAI_API_KEY to server/.env for AI-powered CV parsing and match scoring.');
+  }
+  if (!config.has_email) {
+    hints.push('Add SMTP_USER and SMTP_PASS (Gmail app password) to enable saved-job confirmation emails.');
   }
   return hints;
 }
@@ -1384,6 +1390,56 @@ Return JSON: {"jobs": [{"title":"...","company":"...","location":"${location}","
       code: 'INTERNAL_ERROR',
       details: error.message,
       config_status: getConfigStatus(),
+    });
+  }
+});
+
+/**
+ * POST /api/notify-saved-job
+ * Sends a professional confirmation email when a user saves a job.
+ * Requires Firebase ID token — email is always sent to the authenticated user only.
+ */
+app.post('/api/notify-saved-job', async (req, res) => {
+  try {
+    if (!isEmailConfigured()) {
+      return res.status(503).json({
+        error: 'Email service is not configured.',
+        code: 'EMAIL_NOT_CONFIGURED',
+      });
+    }
+
+    const authHeader = req.headers.authorization || '';
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!idToken) {
+      return res.status(401).json({ error: 'Authentication required.', code: 'UNAUTHORIZED' });
+    }
+
+    const account = await verifyFirebaseIdToken(idToken);
+    const { job, status = 'Saved', recipientName } = req.body || {};
+
+    if (!job?.title) {
+      return res.status(400).json({ error: 'Job details are required.', code: 'INVALID_JOB' });
+    }
+
+    const result = await sendSavedJobEmail({
+      to: account.email,
+      recipientName: recipientName || account.displayName || account.email.split('@')[0],
+      job,
+      status,
+    });
+
+    res.json({
+      success: true,
+      email_sent: result.sent,
+      sent_to: account.email.replace(/(.{2}).+(@.+)/, '$1***$2'),
+    });
+  } catch (error) {
+    console.error('Error in /api/notify-saved-job:', error);
+    const status = error.message?.includes('Invalid or expired') ? 401 : 500;
+    res.status(status).json({
+      error: status === 401 ? 'Session expired. Please sign in again.' : 'Failed to send saved job email.',
+      code: status === 401 ? 'UNAUTHORIZED' : 'EMAIL_FAILED',
+      details: error.message,
     });
   }
 });

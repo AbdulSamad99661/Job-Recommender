@@ -23,6 +23,7 @@ export default function JobCard({ job, onNavigateTab }) {
   const [showExplanation, setShowExplanation] = useState(false);
   const [showKeywordDetails, setShowKeywordDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveNotice, setSaveNotice] = useState(null);
 
   const saved = isJobSaved(job);
 
@@ -45,17 +46,24 @@ export default function JobCard({ job, onNavigateTab }) {
       return;
     }
     setIsSaving(true);
+    setSaveNotice(null);
     try {
       if (saved) {
         await unsaveJob(buildJobDocId(job));
       } else {
-        await saveJob(job, 'Saved');
+        const result = await saveJob(job, 'Saved');
         await logHistory({
           type: 'match',
           title: `Saved job: ${job.title}`,
           description: `${job.company} — ${job.location || job.city || ''}`,
           location: job.country || job.city || '',
         });
+        if (result.emailSent) {
+          setSaveNotice('Saved · Confirmation email sent');
+        } else {
+          setSaveNotice('Saved to your account');
+        }
+        setTimeout(() => setSaveNotice(null), 4000);
       }
     } catch (err) {
       console.error('Save job failed:', err);
@@ -198,6 +206,9 @@ export default function JobCard({ job, onNavigateTab }) {
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {saveNotice && (
+            <span className="save-job-notice">{saveNotice}</span>
+          )}
           <button
             className={`bookmark-btn ${saved ? 'saved' : ''}`}
             onClick={handleSaveToggle}

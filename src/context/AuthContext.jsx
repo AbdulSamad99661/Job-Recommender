@@ -20,6 +20,7 @@ import {
   addHistoryEntry,
   buildJobDocId,
 } from '../services/userService';
+import { notifySavedJobEmail } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -122,8 +123,21 @@ export function AuthProvider({ children }) {
     if (!user) throw new Error('Sign in to save jobs.');
     const jobDocId = await saveJobToDb(user.uid, job, status, notes);
     await refreshUserData(user.uid);
-    return jobDocId;
-  }, [user, refreshUserData]);
+
+    let emailSent = false;
+    try {
+      const idToken = await user.getIdToken();
+      const emailResult = await notifySavedJobEmail(job, idToken, {
+        recipientName: profile?.displayName || user.displayName,
+        status,
+      });
+      emailSent = emailResult.sent;
+    } catch (err) {
+      console.warn('Saved job email failed:', err);
+    }
+
+    return { jobDocId, emailSent };
+  }, [user, profile, refreshUserData]);
 
   const unsaveJob = useCallback(async (jobDocId) => {
     if (!user) return;

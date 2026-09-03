@@ -169,3 +169,30 @@ export async function searchJobsBySkill(skill, location = 'Dubai') {
     });
   }
 }
+
+/**
+ * Send a confirmation email after saving a job (fire-and-forget friendly).
+ */
+export async function notifySavedJobEmail(job, idToken, { recipientName, status = 'Saved' } = {}) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/notify-saved-job`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ job, status, recipientName }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return { sent: false, reason: data.error || 'Email could not be sent.' };
+    }
+
+    return { sent: Boolean(data.email_sent), reason: null };
+  } catch (error) {
+    return { sent: false, reason: error.message };
+  }
+}
