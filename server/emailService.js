@@ -8,6 +8,11 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
+function isBrevoConfigured() {
+  const key = process.env.BREVO_API_KEY;
+  return Boolean(key && key !== 'your_brevo_api_key_here');
+}
+
 function isSendGridConfigured() {
   const key = process.env.SENDGRID_API_KEY;
   return Boolean(key && key !== 'your_sendgrid_api_key_here');
@@ -22,7 +27,7 @@ function isSmtpConfigured() {
 }
 
 export function isEmailConfigured() {
-  return isSendGridConfigured() || isSmtpConfigured();
+  return isBrevoConfigured() || isSendGridConfigured() || isSmtpConfigured();
 }
 
 function getFromIdentity() {
@@ -44,6 +49,29 @@ function getTransporter() {
       pass: process.env.SMTP_PASS,
     },
   });
+}
+
+async function sendViaBrevo({ to, fromEmail, fromName, subject, html, text }) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { email: fromEmail, name: fromName },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text,
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Brevo error (${res.status}): ${errText}`);
+  }
 }
 
 async function sendViaSendGrid({ to, fromEmail, fromName, subject, html, text }) {
@@ -185,6 +213,14 @@ export async function sendSavedJobEmail({ to, recipientName, job, status = 'Save
   const { subject, html, text } = buildSavedJobEmail({ recipientName, job, status });
   const { fromName, fromEmail } = getFromIdentity();
 
+  if (isBrevoConfigured()) {
+    if (!fromEmail) {
+      return { sent: false, reason: 'EMAIL_FROM is required for Brevo' };
+    }
+    await sendViaBrevo({ to, fromEmail, fromName, subject, html, text });
+    return { sent: true, provider: 'brevo' };
+  }
+
   if (isSendGridConfigured()) {
     if (!fromEmail) {
       return { sent: false, reason: 'EMAIL_FROM is required for SendGrid' };
@@ -209,4 +245,4 @@ export async function sendSavedJobEmail({ to, recipientName, job, status = 'Save
   return { sent: true, provider: 'smtp' };
 }
 
-export { isSendGridConfigured, isSmtpConfigured };
+export { isBrevoConfigured, isSendGridConfigured, isSmtpConfigured };
