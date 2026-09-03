@@ -3,6 +3,7 @@ import SplashLoader from './components/SplashLoader';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import ErrorBanner from './components/ErrorBanner';
+import { useAuth } from './context/AuthContext';
 
 import HomeDashboard from './pages/HomeDashboard';
 import UploadResume from './pages/UploadResume';
@@ -10,6 +11,9 @@ import JobMatches from './pages/JobMatches';
 import SearchJobs from './pages/SearchJobs';
 import Profile from './pages/Profile';
 import About from './pages/About';
+import Auth from './pages/Auth';
+import SavedJobs from './pages/SavedJobs';
+import HistoryPage from './pages/History';
 
 import { SAMPLE_RESUMES } from './data/mockResume';
 import { getJobRecommendations, checkBackendHealth, ApiError } from './services/api';
@@ -20,6 +24,7 @@ import './styles/dashboard.css';
 import './styles/animations.css';
 
 export default function App() {
+  const { logHistory, profile, isAuthenticated } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
   const [resumeKey, setResumeKey] = useState(null);
@@ -44,6 +49,12 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     window.localStorage.setItem('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (profile?.defaultCountry) {
+      setActiveLocation(profile.defaultCountry);
+    }
+  }, [profile?.defaultCountry]);
 
   useEffect(() => {
     checkBackendHealth()
@@ -123,6 +134,13 @@ export default function App() {
       if (formatted.length > 0) {
         setLiveJobs(formatted);
         setActiveTab('matches');
+        logHistory({
+          type: 'upload',
+          title: 'CV uploaded & matched',
+          description: `Matched ${formatted.length} jobs for ${role}`,
+          location,
+          jobCount: formatted.length,
+        });
       } else {
         setMatchError({
           title: 'No Jobs Found',
@@ -142,7 +160,9 @@ export default function App() {
     } finally {
       setIsMatchingLoading(false);
     }
-  }, []);
+  }, [logHistory]);
+
+  const navigateTab = (tab) => setActiveTab(tab);
 
   return (
     <div className="app-container" data-theme={theme}>
@@ -156,6 +176,7 @@ export default function App() {
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
         jobCount={liveJobs.length}
+        isAuthenticated={isAuthenticated}
       />
 
       <div className="main-wrapper">
@@ -164,6 +185,7 @@ export default function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           activeTab={activeTab}
+          onNavigateTab={navigateTab}
         />
 
         <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -199,7 +221,7 @@ export default function App() {
             <HomeDashboard
               currentResume={currentResume}
               jobs={liveJobs}
-              onNavigateTab={(tab) => setActiveTab(tab)}
+              onNavigateTab={navigateTab}
             />
           )}
 
@@ -207,7 +229,7 @@ export default function App() {
             <UploadResume
               currentResume={currentResume}
               onSelectSampleResume={handleSelectSampleResume}
-              onNavigateTab={(tab) => setActiveTab(tab)}
+              onNavigateTab={navigateTab}
               onFetchJobRecommendations={handleFetchJobRecommendations}
               isMatchingLoading={isMatchingLoading}
               matchingStep={matchingStep}
@@ -220,19 +242,31 @@ export default function App() {
               activeLocation={activeLocation}
               isMatchingLoading={isMatchingLoading}
               dataSource={dataSource}
-              onNavigateTab={(tab) => setActiveTab(tab)}
+              onNavigateTab={navigateTab}
             />
           )}
 
           {activeTab === 'search' && (
-            <SearchJobs />
+            <SearchJobs onNavigateTab={navigateTab} />
+          )}
+
+          {activeTab === 'saved' && (
+            <SavedJobs onNavigateTab={navigateTab} />
+          )}
+
+          {activeTab === 'history' && (
+            <HistoryPage onNavigateTab={navigateTab} />
           )}
 
           {activeTab === 'profile' && (
             <Profile
               currentResume={currentResume}
-              onNavigateTab={(tab) => setActiveTab(tab)}
+              onNavigateTab={navigateTab}
             />
+          )}
+
+          {activeTab === 'auth' && (
+            <Auth onNavigateTab={navigateTab} />
           )}
 
           {activeTab === 'about' && (

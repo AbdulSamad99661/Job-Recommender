@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import JobCard from '../components/JobCard';
 import SkeletonJobCard from '../components/SkeletonJobCard';
 import ErrorBanner from '../components/ErrorBanner';
+import { useAuth } from '../context/AuthContext';
 import { searchJobsBySkill, ApiError } from '../services/api';
 import { formatJobsFromResponse } from '../utils/formatJobs';
 import {
@@ -26,7 +27,8 @@ const DATA_SOURCE_LABELS = {
   openai_generated: 'AI-generated (no live listings found)',
 };
 
-export default function SearchJobs() {
+export default function SearchJobs({ onNavigateTab }) {
+  const { logHistory } = useAuth();
   const [skill, setSkill] = useState('');
   const [location, setLocation] = useState(DEFAULT_SEARCH_LOCATION);
   const [jobs, setJobs] = useState([]);
@@ -52,6 +54,15 @@ export default function SearchJobs() {
       setJobs(formatted);
       setDataSource(response.data_source || null);
       setLastSearch({ skill: query, location });
+
+      logHistory({
+        type: 'search',
+        title: `Skill search: ${query}`,
+        description: `Found ${formatted.length} jobs in ${location}`,
+        location,
+        skill: query,
+        jobCount: formatted.length,
+      });
 
       if (formatted.length === 0) {
         setError({
@@ -204,7 +215,7 @@ export default function SearchJobs() {
       {!isLoading && jobs.length > 0 && (
         <div className="search-results-list">
           {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job} onNavigateTab={onNavigateTab} />
           ))}
         </div>
       )}

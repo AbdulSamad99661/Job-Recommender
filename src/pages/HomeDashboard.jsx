@@ -1,5 +1,6 @@
 import React from 'react';
 import JobCard from '../components/JobCard';
+import { useAuth } from '../context/AuthContext';
 import { MOCK_ACTIVITIES } from '../data/mockActivities';
 import { 
   Sparkles, 
@@ -17,6 +18,7 @@ export default function HomeDashboard({
   jobs, 
   onNavigateTab, 
 }) {
+  const { history, isAuthenticated } = useAuth();
   const topJobs = jobs.slice(0, 3);
   const topScore = jobs[0]?.matchScore ?? null;
   const skillCount = currentResume?.topSkills?.length || 0;
@@ -117,7 +119,7 @@ export default function HomeDashboard({
 
           {topJobs.length > 0 ? (
             topJobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <JobCard key={job.id} job={job} onNavigateTab={onNavigateTab} />
             ))
           ) : (
             <div className="empty-state-card">
@@ -139,18 +141,41 @@ export default function HomeDashboard({
             </div>
 
             <div className="activity-list">
-              {MOCK_ACTIVITIES.map((act) => (
-                <div key={act.id} className="activity-item">
-                  <div className="activity-dot" />
-                  <div>
-                    <div className="activity-item-header">
-                      <strong>{act.title}</strong>
-                      <span>{act.time}</span>
+              {isAuthenticated ? (
+                history.length > 0 ? (
+                  history.slice(0, 4).map((act) => (
+                    <div key={act.id} className="activity-item">
+                      <div className="activity-dot" />
+                      <div>
+                        <div className="activity-item-header">
+                          <strong>{act.title}</strong>
+                          <span>
+                            {act.createdAt?.toDate
+                              ? act.createdAt.toDate().toLocaleString()
+                              : 'Recently'}
+                          </span>
+                        </div>
+                        <p>{act.description}</p>
+                      </div>
                     </div>
-                    <p>{act.description}</p>
+                  ))
+                ) : (
+                  <p className="profile-empty-section">Your activity will appear here after uploads and searches.</p>
+                )
+              ) : (
+                MOCK_ACTIVITIES.map((act) => (
+                  <div key={act.id} className="activity-item">
+                    <div className="activity-dot" />
+                    <div>
+                      <div className="activity-item-header">
+                        <strong>{act.title}</strong>
+                        <span>{act.time}</span>
+                      </div>
+                      <p>{act.description}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

@@ -1,34 +1,42 @@
 import React from 'react';
-import { 
-  Home, 
-  UploadCloud, 
-  Briefcase, 
+import { useAuth } from '../context/AuthContext';
+import {
+  Home,
+  UploadCloud,
+  Briefcase,
   Search,
-  UserCheck, 
-  Info, 
-  Bot, 
+  UserCheck,
+  Info,
+  Bot,
   X,
-  Sparkles
+  Sparkles,
+  Bookmark,
+  History,
+  LogIn,
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jobCount = 0 }) {
+  const { isAuthenticated, savedJobs } = useAuth();
+
   const navItems = [
     { id: 'home', label: 'Dashboard', icon: Home },
     { id: 'upload', label: 'Upload Resume', icon: UploadCloud },
     { id: 'search', label: 'Search', icon: Search },
     { id: 'matches', label: 'Job Matches', icon: Briefcase, badge: jobCount > 0 ? String(jobCount) : null },
+    { id: 'saved', label: 'Saved Jobs', icon: Bookmark, badge: savedJobs.length > 0 ? String(savedJobs.length) : null, authOnly: true },
+    { id: 'history', label: 'History', icon: History, authOnly: true },
     { id: 'profile', label: 'My Profile', icon: UserCheck },
-    { id: 'about', label: 'How it Works', icon: Info }
+    { id: 'about', label: 'How it Works', icon: Info },
   ];
+
+  if (!isAuthenticated) {
+    navItems.splice(7, 0, { id: 'auth', label: 'Sign In', icon: LogIn });
+  }
 
   return (
     <>
-      {/* Mobile Drawer Overlay Backdrop */}
       {isOpen && (
-        <div 
-          className="sidebar-backdrop"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="sidebar-backdrop" onClick={() => setIsOpen(false)} />
       )}
 
       <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
@@ -44,13 +52,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jo
               </span>
             </div>
           </div>
-
-          {/* Close button - VISIBLE on Mobile when Drawer is Open */}
-          <button 
-            className="icon-btn mobile-close-btn" 
-            onClick={() => setIsOpen(false)}
-            aria-label="Close Navigation Menu"
-          >
+          <button className="icon-btn mobile-close-btn" onClick={() => setIsOpen(false)} aria-label="Close Navigation Menu">
             <X size={20} />
           </button>
         </div>
@@ -65,7 +67,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jo
                 className={`nav-item ${isActive ? 'active' : ''}`}
                 onClick={() => {
                   setActiveTab(item.id);
-                  setIsOpen(false); // Close mobile drawer when an item is selected
+                  setIsOpen(false);
                 }}
               >
                 <Icon size={19} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
@@ -86,10 +88,10 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jo
             <div>
               <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Sparkles size={12} color="var(--accent-emerald)" />
-                Ready to match
+                {isAuthenticated ? 'Account active' : 'Guest mode'}
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                Upload a CV to get started
+                {isAuthenticated ? 'Jobs & history are saved' : 'Sign in to save jobs & history'}
               </div>
             </div>
           </div>

@@ -152,7 +152,7 @@ export default function JobMatches({
       {!isMatchingLoading && filteredJobs.length > 0 && (
         <div>
           {filteredJobs.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job} onNavigateTab={onNavigateTab} />
           ))}
         </div>
       )}

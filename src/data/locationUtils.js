@@ -134,6 +134,8 @@ export const LOCATION_MATCH_TERMS = {
   'Puerto Rico': ['puerto rico', 'pr', 'san juan'],
   Remote: [],
 };
+
+export function getLocationIsoCode(locationId) {
   return LOCATION_ISO_CODES[locationId] ?? null;
 }
 
