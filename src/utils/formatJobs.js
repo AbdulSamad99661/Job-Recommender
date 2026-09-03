@@ -1,3 +1,5 @@
+import { processedJobMatchesLocation } from '../data/locationUtils';
+
 export function formatJobsFromResponse(response, location, roleOrSkill = 'Software Engineer') {
   if (!response?.jobs?.length) return [];
   return response.jobs
@@ -19,7 +21,9 @@ export function formatJobsFromResponse(response, location, roleOrSkill = 'Softwa
       recommendation: j.explanation?.recommendation || 'High recommendation to apply.',
       source_platform: j.source_platform,
       dataSource: response.data_source,
+      isRemote: j.is_remote,
     }))
     .filter((job) => job.matchScore >= 30)
+    .filter((job) => processedJobMatchesLocation(job, location))
     .sort((a, b) => b.matchScore - a.matchScore);
 }

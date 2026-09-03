@@ -7,6 +7,12 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { SEARCH_COUNTRY_IDS } from '../src/data/searchCountries.js';
+import {
+  getLocationIsoCode,
+  filterRawJobsByLocation,
+  filterProcessedJobsByLocation,
+  formatJobLocationString,
+} from '../src/data/locationUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,7 +118,10 @@ function normalizeN8nResponse(n8nData, fullProfile, location, config) {
     };
   });
 
-  const rankedJobs = filterJobsByMinScore(processedJobs);
+  const rankedJobs = filterProcessedJobsByLocation(
+    filterJobsByMinScore(processedJobs),
+    location
+  );
 
   return {
     status: 'success',
@@ -743,7 +752,9 @@ function extractAndMatchJobSkills(job, candidateSkills) {
  */
 function buildTargetedSearchQuery(profile, targetLocation) {
   const cleanTitle = profile.title.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-  return `${cleanTitle} in ${targetLocation}`;
+  const region = SEARCH_REGION_ALIASES[targetLocation] || targetLocation;
+  if (targetLocation === 'Remote') return `${cleanTitle} remote jobs`;
+  return `${cleanTitle} jobs in ${region}`;
 }
 
 const ALLOWED_SEARCH_LOCATIONS = SEARCH_COUNTRY_IDS;
@@ -752,11 +763,27 @@ const SEARCH_REGION_ALIASES = {
   Dubai: 'Dubai UAE',
   'United States': 'USA',
   'United Kingdom': 'UK',
+  'United Arab Emirates': 'UAE',
+  Remote: 'Remote worldwide',
 };
+
+function buildJSearchParams(query, location) {
+  const params = { query, page: '1', num_pages: '2' };
+  const iso = getLocationIsoCode(location);
+
+  if (location === 'Remote') {
+    params.query = query.toLowerCase().includes('remote') ? query : `${query} remote`;
+  } else if (iso) {
+    params.country = iso;
+  }
+
+  return params;
+}
 
 function buildSkillSearchQuery(skill, location) {
   const cleanSkill = skill.replace(/[^a-zA-Z0-9\s+#.]/g, '').trim();
   const region = SEARCH_REGION_ALIASES[location] || location;
+  if (location === 'Remote') return `${cleanSkill} remote jobs`;
   return `${cleanSkill} jobs in ${region}`;
 }
 
@@ -783,37 +810,38 @@ function buildProfileFromSkillInput(skill, location) {
 async function fetchRapidApiJobs(searchQuery, location, config) {
   if (!config.has_rapidapi) return [];
 
+  const headers = {
+    'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+    'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+  };
+
   try {
-    console.log(`📡 Querying RapidAPI JSearch for: "${searchQuery}"...`);
+    console.log(`📡 Querying RapidAPI JSearch for: "${searchQuery}" (${location})...`);
     let rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
-      params: {
-        query: searchQuery,
-        page: '1',
-        num_pages: '2',
-      },
-      headers: {
-        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-      },
+      params: buildJSearchParams(searchQuery, location),
+      headers,
       timeout: 25000,
     });
 
-    if (rapidResponse.data?.data?.length > 0) {
-      return rapidResponse.data.data;
+    let rawJobs = rapidResponse.data?.data || [];
+
+    if (rawJobs.length === 0) {
+      const region = SEARCH_REGION_ALIASES[location] || location;
+      const fallbackQuery = location === 'Remote'
+        ? 'remote software developer jobs'
+        : `Developer jobs in ${region}`;
+      console.log(`⚠️ Primary query returned 0 jobs. Trying fallback: "${fallbackQuery}"...`);
+      rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
+        params: buildJSearchParams(fallbackQuery, location),
+        headers,
+        timeout: 25000,
+      });
+      rawJobs = rapidResponse.data?.data || [];
     }
 
-    const fallbackQuery = `Developer in ${location}`;
-    console.log(`⚠️ Primary query returned 0 jobs. Trying fallback: "${fallbackQuery}"...`);
-    rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
-      params: { query: fallbackQuery, page: '1', num_pages: '2' },
-      headers: {
-        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-      },
-      timeout: 25000,
-    });
-
-    return rapidResponse.data?.data || [];
+    const locationFiltered = filterRawJobsByLocation(rawJobs, location);
+    console.log(`📍 Location filter (${location}): ${rawJobs.length} → ${locationFiltered.length} jobs`);
+    return locationFiltered;
   } catch (rapidErr) {
     console.error('RapidAPI error:', rapidErr.response ? rapidErr.response.data : rapidErr.message);
     return [];
@@ -856,14 +884,17 @@ function mapRawJobsToProcessed(rawJobs, fullProfile, location, aiScores = []) {
       ? new Date(job.job_posted_at_datetime_utc).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0];
 
+    const resolvedCountry = location;
+    const displayLocation = formatJobLocationString(job, location);
+
     return {
       job_id: job.job_id || `live_job_${idx + 1}`,
       title: job.job_title || `${fullProfile.title} - ${location}`,
       company: job.employer_name || 'Enterprise Employer',
-      location: job.job_city ? `${job.job_city}, ${job.job_country || location}` : (job.job_country || location),
+      location: displayLocation,
       city: job.job_city || location,
-      country: location,
-      is_remote: job.job_is_remote || false,
+      country: resolvedCountry,
+      is_remote: job.job_is_remote || location === 'Remote',
       posted_date: postedDate,
       posted_time_ago: postedTimeAgo,
       salary: job.job_min_salary ? `$${job.job_min_salary} - $${job.job_max_salary}` : 'Competitive Salary',
@@ -999,140 +1030,15 @@ app.post('/api/recommend-jobs', upload.single('resume'), async (req, res) => {
     }
 
     // 2. Query Live Jobs from RapidAPI JSearch (LinkedIn, Indeed, Glassdoor, ZipRecruiter)
-    let rawJobs = [];
-    if (config.has_rapidapi) {
-      try {
-        console.log(`📡 Agent 2: Querying live RapidAPI JSearch for: "${searchQuery}"...`);
-        let rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
-          params: { 
-            query: searchQuery, 
-            page: '1', 
-            num_pages: '2' 
-          },
-          headers: {
-            'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-            'x-rapidapi-host': 'jsearch.p.rapidapi.com'
-          },
-          timeout: 25000
-        });
-
-        if (rapidResponse.data && rapidResponse.data.data && Array.isArray(rapidResponse.data.data) && rapidResponse.data.data.length > 0) {
-          rawJobs = rapidResponse.data.data;
-        } else {
-          const fallbackQuery = `Developer in ${location}`;
-          console.log(`⚠️ Primary query returned 0 jobs. Trying fallback query: "${fallbackQuery}"...`);
-          rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
-            params: { query: fallbackQuery, page: '1', num_pages: '2' },
-            headers: {
-              'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-              'x-rapidapi-host': 'jsearch.p.rapidapi.com'
-            },
-            timeout: 25000
-          });
-          if (rapidResponse.data && rapidResponse.data.data) {
-            rawJobs = rapidResponse.data.data;
-          }
-        }
-
-        console.log(`✅ RapidAPI JSearch returned ${rawJobs.length} REAL live job listings!`);
-      } catch (rapidErr) {
-        console.error('RapidAPI error:', rapidErr.response ? rapidErr.response.data : rapidErr.message);
-      }
-    }
+    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config);
 
     // 3. Process & Format Live RapidAPI Jobs with REAL Posting Times & Dynamic Skill Overview Extraction
     let processedJobs = [];
 
     if (rawJobs.length > 0) {
-      let aiScores = [];
-      if (config.has_openai) {
-        try {
-          console.log('🤖 Scoring live RapidAPI jobs using OpenAI API...');
-          const prompt = `Analyze candidate resume snippet and score match against these ${rawJobs.length} live jobs:
-Candidate: ${fullProfile.name} (${fullProfile.title}, Skills: ${fullProfile.topSkills.map(s=>s.name).join(', ')})
-Resume Snippet: ${resumeText.substring(0, 800)}
-Jobs: ${JSON.stringify(rawJobs.slice(0, 20).map(j => ({ id: j.job_id, title: j.job_title, company: j.employer_name, desc: j.job_description ? j.job_description.substring(0, 200) : '' })))}
-
-Return a valid JSON object with key "jobs": an array with one scored entry for EVERY job listed above (do not omit any). Each object must have keys: job_id, match_score (0-100), why_matched, matching_skills (array), missing_skills (array), recommendation.
-Include all jobs with match_score >= ${MIN_MATCH_SCORE}. Score honestly — partial matches can be 30-60%.
-CRITICAL INSTRUCTION FOR why_matched: Write a comprehensive, detailed 5-line (4 to 5 sentences) explanation for each job analyzing candidate technical alignment, matched skills, role suitability, skill gaps, and hiring recommendations.`;
-
-          const aiResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: 'gpt-4o-mini',
-            messages: [{ role: 'system', content: 'You are an AI Job Matching Engine.' }, { role: 'user', content: prompt }],
-            response_format: { type: 'json_object' }
-          }, {
-            headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 6000
-          });
-
-          const parsed = JSON.parse(aiResponse.data.choices[0].message.content);
-          aiScores = parsed.jobs || parsed.results || [];
-        } catch (aiErr) {
-          console.warn('OpenAI scoring skipped or timed out:', aiErr.message);
-        }
-      }
-
-      processedJobs = rawJobs.slice(0, 20).map((job, idx) => {
-        const aiItem = aiScores.find(s => s.job_id === job.job_id) || aiScores[idx] || {};
-
-        const postedTimeAgo = calculateRelativePostingTime(
-          job.job_posted_at_datetime_utc,
-          job.job_posted_at_timestamp
-        );
-
-        const skillAnalysis = extractAndMatchJobSkills(job, fullProfile.topSkills);
-        const score = aiItem.match_score || skillAnalysis.matchScore;
-
-        const cleanTitle = encodeURIComponent(`${job.job_title || fullProfile.title} ${job.employer_name || ''}`);
-        const platformLinks = [
-          `https://www.indeed.com/jobs?q=${cleanTitle}`,
-          `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${cleanTitle}`,
-          `https://www.google.com/search?q=${cleanTitle}+jobs`,
-          `https://www.ziprecruiter.com/candidate/search?search=${cleanTitle}`,
-          `https://www.linkedin.com/jobs/search/?keywords=${cleanTitle}`
-        ];
-
-        let applyLink = job.job_apply_link;
-        if (!applyLink && Array.isArray(job.job_apply_options) && job.job_apply_options.length > 0) {
-          applyLink = job.job_apply_options[0].apply_link;
-        }
-        if (!applyLink || !applyLink.startsWith('http')) {
-          applyLink = platformLinks[idx % platformLinks.length];
-        }
-
-        const publisherName = job.job_publisher || (Array.isArray(job.job_apply_options) && job.job_apply_options[0]?.publisher) || ['Indeed', 'Glassdoor', 'Google Jobs', 'ZipRecruiter', 'LinkedIn'][idx % 5];
-
-        const postedDate = job.job_posted_at_datetime_utc 
-          ? new Date(job.job_posted_at_datetime_utc).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0];
-
-        return {
-          job_id: job.job_id || `live_job_${idx + 1}`,
-          title: job.job_title || `${fullProfile.title} - ${location}`,
-          company: job.employer_name || 'Enterprise Employer',
-          location: job.job_city ? `${job.job_city}, ${job.job_country || location}` : (job.job_country || location),
-          city: job.job_city || location,
-          country: location,
-          is_remote: job.job_is_remote || false,
-          posted_date: postedDate,
-          posted_time_ago: postedTimeAgo,
-          salary: job.job_min_salary ? `$${job.job_min_salary} - $${job.job_max_salary}` : 'Competitive Salary',
-          apply_link: applyLink,
-          source_platform: `${publisherName} (via RapidAPI)`,
-          match_score: score,
-          match_level: score >= 90 ? 'Strong Match' : 'Good Match',
-          explanation: {
-            why_matched: aiItem.why_matched || skillAnalysis.whyMatched,
-            matching_skills: aiItem.matching_skills || skillAnalysis.matchedSkills,
-            missing_skills: aiItem.missing_skills || skillAnalysis.missingSkills,
-            recommendation: aiItem.recommendation || `High recommendation to apply directly on ${publisherName}.`
-          }
-        };
-      });
+      console.log(`✅ RapidAPI JSearch returned ${rawJobs.length} location-matched live job listings!`);
+      const aiScores = await scoreJobsWithOpenAI(rawJobs, fullProfile, resumeText, config);
+      processedJobs = mapRawJobsToProcessed(rawJobs, fullProfile, location, aiScores);
       dataSource = 'rapidapi';
     }
 
@@ -1312,7 +1218,10 @@ Return JSON with format: {"jobs": [{"title": "...", "company": "...", "location"
       dataSource = 'skill_engine_fallback';
     }
 
-    processedJobs = filterJobsByMinScore(processedJobs);
+    processedJobs = filterProcessedJobsByLocation(
+      filterJobsByMinScore(processedJobs),
+      location
+    );
 
     const warnings = buildResponseWarnings(config, dataSource, processedJobs.length);
 
@@ -1442,7 +1351,10 @@ Return JSON: {"jobs": [{"title":"...","company":"...","location":"${location}","
       }
     }
 
-    processedJobs = filterJobsByMinScore(processedJobs);
+    processedJobs = filterProcessedJobsByLocation(
+      filterJobsByMinScore(processedJobs),
+      location
+    );
     const warnings = buildResponseWarnings(config, dataSource, processedJobs.length);
 
     if (!config.has_rapidapi) {

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import JobCard from '../components/JobCard';
 import SkeletonJobCard from '../components/SkeletonJobCard';
+import { processedJobMatchesLocation } from '../data/locationUtils';
 import {
   Sparkles,
   SearchX,
@@ -23,14 +24,22 @@ export default function JobMatches({
   dataSource = null,
   onNavigateTab,
 }) {
-  const [selectedCountry, setSelectedCountry] = useState('All');
   const [selectedCity, setSelectedCity] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [minScore, setMinScore] = useState(30);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredJobs = jobs.filter((job) => {
-    if (selectedCountry !== 'All' && job.country !== selectedCountry) return false;
+  const locationJobs = useMemo(
+    () => jobs.filter((job) => processedJobMatchesLocation(job, activeLocation)),
+    [jobs, activeLocation]
+  );
+
+  const availableCities = useMemo(
+    () => [...new Set(locationJobs.map((job) => job.city).filter(Boolean))].sort(),
+    [locationJobs]
+  );
+
+  const filteredJobs = locationJobs.filter((job) => {
     if (selectedCity !== 'All' && job.city !== selectedCity) return false;
     if (selectedType !== 'All' && job.type !== selectedType) return false;
     if (job.matchScore < minScore) return false;
@@ -46,7 +55,7 @@ export default function JobMatches({
     return true;
   });
 
-  const hasJobs = jobs.length > 0;
+  const hasJobs = locationJobs.length > 0;
   const isFilteredEmpty = hasJobs && filteredJobs.length === 0;
 
   return (
@@ -90,39 +99,17 @@ export default function JobMatches({
           </div>
 
           <div className="filter-group">
-            <label>Country:</label>
-            <select
-              className="filter-select"
-              value={selectedCountry}
-              onChange={(e) => { setSelectedCountry(e.target.value); setSelectedCity('All'); }}
-              disabled={isMatchingLoading}
-            >
-              <option value="All">All Locations</option>
-              <option value="Dubai">Dubai 🇦🇪</option>
-              <option value="Pakistan">Pakistan 🇵🇰</option>
-              <option value="India">India 🇮🇳</option>
-              <option value="Remote">Remote 🌐</option>
-            </select>
+            <label>Location:</label>
+            <span className="filter-location-badge badge-chip badge-cyan">{activeLocation}</span>
           </div>
 
           <div className="filter-group">
             <label>City:</label>
-            <select className="filter-select" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} disabled={isMatchingLoading}>
+            <select className="filter-select" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} disabled={isMatchingLoading || availableCities.length === 0}>
               <option value="All">All Cities</option>
-              {selectedCountry !== 'India' && (
-                <>
-                  <option value="Karachi">Karachi 🇵🇰</option>
-                  <option value="Lahore">Lahore 🇵🇰</option>
-                  <option value="Islamabad">Islamabad 🇵🇰</option>
-                </>
-              )}
-              {selectedCountry !== 'Pakistan' && (
-                <>
-                  <option value="Bangalore">Bangalore 🇮🇳</option>
-                  <option value="Mumbai">Mumbai 🇮🇳</option>
-                  <option value="Delhi">Delhi 🇮🇳</option>
-                </>
-              )}
+              {availableCities.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
             </select>
           </div>
 
@@ -198,7 +185,6 @@ export default function JobMatches({
             type="button"
             className="btn-secondary"
             onClick={() => {
-              setSelectedCountry('All');
               setSelectedCity('All');
               setSelectedType('All');
               setMinScore(30);
