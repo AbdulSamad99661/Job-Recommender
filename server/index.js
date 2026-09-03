@@ -75,7 +75,7 @@ function buildSetupHints(config) {
     hints.push('Add OPENAI_API_KEY to server/.env for AI-powered CV parsing and match scoring.');
   }
   if (!config.has_email) {
-    hints.push('Add BREVO_API_KEY + EMAIL_FROM (free, no Gmail app password) or SMTP_PASS for saved-job emails.');
+    hints.push('Add a valid Brevo key: BREVO_API_KEY (starts with xkeysib-) or BREVO_SMTP_KEY from Brevo → SMTP & API → SMTP tab.');
   }
   return hints;
 }

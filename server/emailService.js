@@ -8,9 +8,23 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
+function isBrevoApiConfigured() {
+  const key = process.env.BREVO_API_KEY || '';
+  return key.startsWith('xkeysib-');
+}
+
+function isBrevoSmtpConfigured() {
+  const key = process.env.BREVO_SMTP_KEY || process.env.BREVO_API_KEY || '';
+  return Boolean(
+    key &&
+    key !== 'your_brevo_api_key_here' &&
+    !key.startsWith('xkeysib-') &&
+    (process.env.EMAIL_FROM || process.env.BREVO_SMTP_LOGIN)
+  );
+}
+
 function isBrevoConfigured() {
-  const key = process.env.BREVO_API_KEY;
-  return Boolean(key && key !== 'your_brevo_api_key_here');
+  return isBrevoApiConfigured() || isBrevoSmtpConfigured();
 }
 
 function isSendGridConfigured() {
@@ -35,6 +49,17 @@ function getFromIdentity() {
     fromName: process.env.EMAIL_FROM_NAME || process.env.SMTP_FROM_NAME || 'JobMatch',
     fromEmail: process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER,
   };
+}
+
+function getBrevoSmtpTransporter() {
+  if (!isBrevoSmtpConfigured()) return null;
+  const smtpKey = process.env.BREVO_SMTP_KEY || process.env.BREVO_API_KEY;
+  const login = process.env.BREVO_SMTP_LOGIN || process.env.EMAIL_FROM || process.env.SMTP_USER;
+  return nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    auth: { user: login, pass: smtpKey },
+  });
 }
 
 function getTransporter() {
@@ -213,18 +238,28 @@ export async function sendSavedJobEmail({ to, recipientName, job, status = 'Save
   const { subject, html, text } = buildSavedJobEmail({ recipientName, job, status });
   const { fromName, fromEmail } = getFromIdentity();
 
-  if (isBrevoConfigured()) {
-    if (!fromEmail) {
-      return { sent: false, reason: 'EMAIL_FROM is required for Brevo' };
-    }
+  if (!fromEmail) {
+    return { sent: false, reason: 'EMAIL_FROM is not configured on the server.' };
+  }
+
+  if (isBrevoApiConfigured()) {
     await sendViaBrevo({ to, fromEmail, fromName, subject, html, text });
-    return { sent: true, provider: 'brevo' };
+    return { sent: true, provider: 'brevo-api' };
+  }
+
+  const brevoSmtp = getBrevoSmtpTransporter();
+  if (brevoSmtp) {
+    await brevoSmtp.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to,
+      subject,
+      html,
+      text,
+    });
+    return { sent: true, provider: 'brevo-smtp' };
   }
 
   if (isSendGridConfigured()) {
-    if (!fromEmail) {
-      return { sent: false, reason: 'EMAIL_FROM is required for SendGrid' };
-    }
     await sendViaSendGrid({ to, fromEmail, fromName, subject, html, text });
     return { sent: true, provider: 'sendgrid' };
   }
@@ -245,4 +280,4 @@ export async function sendSavedJobEmail({ to, recipientName, job, status = 'Save
   return { sent: true, provider: 'smtp' };
 }
 
-export { isBrevoConfigured, isSendGridConfigured, isSmtpConfigured };
+export { isBrevoConfigured, isBrevoApiConfigured, isBrevoSmtpConfigured, isSendGridConfigured, isSmtpConfigured };
