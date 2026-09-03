@@ -209,4 +209,4 @@ export async function sendSavedJobEmail({ to, recipientName, job, status = 'Save
   return { sent: true, provider: 'smtp' };
 }
 
-export { isEmailConfigured, isSendGridConfigured, isSmtpConfigured };
+export { isSendGridConfigured, isSmtpConfigured };
