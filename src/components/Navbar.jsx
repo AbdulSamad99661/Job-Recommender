@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, Sun, Moon, LogIn, LogOut, User, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import AppLogo from './AppLogo';
 
 const PAGE_TITLES = {
   home: 'Dashboard',
@@ -42,10 +41,8 @@ export default function Navbar({
         <button className="icon-btn mobile-hamburger-btn" onClick={onMenuToggle} aria-label="Toggle Navigation Menu">
           <Menu size={20} />
         </button>
-        <AppLogo size={36} className="navbar-logo" />
         <div className="navbar-page-title">
           <h2>{PAGE_TITLES[activeTab] || 'JobRecommender'}</h2>
-          <p>AI-powered resume matching</p>
         </div>
       </div>
 
