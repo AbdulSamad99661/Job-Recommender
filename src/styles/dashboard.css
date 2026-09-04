@@ -1117,35 +1117,6 @@
   flex-shrink: 0;
 }
 
-.about-footer {
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-color-strong);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-}
-
-.about-footer-title {
-  font-weight: 800;
-  color: var(--text-main);
-  font-size: 0.98rem;
-}
-
-.about-footer-sub {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.about-footer-badge {
-  padding: 6px 14px;
-  flex-shrink: 0;
-}
-
 /* Tablet & Mobile Breakpoints for How It Works Tab */
 @media (max-width: 768px) {
   .about-header {
@@ -1245,28 +1216,6 @@
     align-self: center;
     margin: 2px 0;
   }
-
-  .about-footer {
-    padding: 16px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    border-radius: var(--radius-md);
-  }
-
-  .about-footer-title {
-    font-size: 0.9rem;
-  }
-
-  .about-footer-sub {
-    font-size: 0.78rem;
-    line-height: 1.4;
-  }
-
-  .about-footer-badge {
-    padding: 5px 10px;
-    font-size: 0.72rem;
-  }
 }
 
 @media (max-width: 480px) {
@@ -1312,14 +1261,6 @@
 
   .architecture-step-sub {
     font-size: 0.72rem;
-  }
-
-  .about-footer-title {
-    font-size: 0.85rem;
-  }
-
-  .about-footer-sub {
-    font-size: 0.74rem;
   }
 }
 

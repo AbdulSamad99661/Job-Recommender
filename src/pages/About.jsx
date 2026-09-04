@@ -4,7 +4,6 @@ import {
   Sparkles, 
   Database, 
   Network, 
-  ShieldCheck, 
   ArrowRight,
   ArrowDown
 } from 'lucide-react';
@@ -108,22 +107,6 @@ export default function About() {
               <div className="architecture-step-title">Job Feeds</div>
               <div className="architecture-step-sub">Pakistan 🇵🇰 & India 🇮🇳</div>
             </div>
-          </div>
-        </div>
-
-        {/* Project Meta Info Footer */}
-        <div className="about-footer">
-          <div className="about-footer-info">
-            <div className="about-footer-title">
-              Final Year Project Demonstration
-            </div>
-            <div className="about-footer-sub">
-              Job Recommendation System by Resume Understanding with Explainable Matching
-            </div>
-          </div>
-
-          <div className="badge-chip badge-emerald about-footer-badge">
-            <ShieldCheck size={14} /> System Operational
           </div>
         </div>
       </div>
