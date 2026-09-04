@@ -23,14 +23,37 @@
   overflow: hidden;
 }
 
+.main-wrapper > main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
 .page-container {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 28px 32px;
   position: relative;
-  height: calc(100vh - var(--navbar-height));
+  min-height: 0;
   max-width: 100%;
+}
+
+.app-footer {
+  flex-shrink: 0;
+  padding: 12px 24px;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-surface);
+}
+
+.app-footer p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 /* Splash Loader Screen */
@@ -949,32 +972,6 @@
   width: 100%;
 }
 
-.about-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.about-badge {
-  margin-bottom: 10px;
-}
-
-.about-title {
-  font-size: 1.95rem;
-  font-weight: 800;
-  color: var(--text-main);
-  margin-bottom: 10px;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-}
-
-.about-subtitle {
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  max-width: 640px;
-  margin: 0 auto;
-  line-height: 1.55;
-}
-
 .about-workflow-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1119,21 +1116,6 @@
 
 /* Tablet & Mobile Breakpoints for How It Works Tab */
 @media (max-width: 768px) {
-  .about-header {
-    margin-bottom: 20px;
-  }
-
-  .about-title {
-    font-size: 1.4rem;
-    margin-bottom: 6px;
-  }
-
-  .about-subtitle {
-    font-size: 0.85rem;
-    line-height: 1.45;
-    padding: 0 4px;
-  }
-
   .about-workflow-grid {
     grid-template-columns: 1fr;
     gap: 14px;
@@ -1219,14 +1201,6 @@
 }
 
 @media (max-width: 480px) {
-  .about-title {
-    font-size: 1.25rem;
-  }
-
-  .about-subtitle {
-    font-size: 0.8rem;
-  }
-
   .about-card {
     padding: 14px 12px;
   }

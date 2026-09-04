@@ -188,7 +188,7 @@ export default function App() {
           onNavigateTab={navigateTab}
         />
 
-        <main style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <main>
           {matchError && activeTab !== 'about' && (
             <div className="global-alert-container">
               <ErrorBanner
@@ -273,6 +273,10 @@ export default function App() {
             <About />
           )}
         </main>
+
+        <footer className="app-footer">
+          <p>© {new Date().getFullYear()} JobRecommender. All rights reserved.</p>
+        </footer>
       </div>
     </div>
   );

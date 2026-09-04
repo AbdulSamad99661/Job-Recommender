@@ -12,20 +12,6 @@ export default function About() {
   return (
     <div className="page-container custom-scrollbar animate-fade-in">
       <div className="about-wrapper">
-        {/* Header */}
-        <div className="about-header">
-          <span className="badge-chip badge-indigo about-badge">
-            <Sparkles size={14} color="var(--primary)" />
-            Final Year Project • Computer Science & AI
-          </span>
-          <h1 className="about-title">
-            Job Recommendation System
-          </h1>
-          <p className="about-subtitle">
-            Resume Understanding with Explainable Matching — bridging job seekers and tech employers across Pakistan 🇵🇰 and India 🇮🇳.
-          </p>
-        </div>
-
         {/* 3-Step Agent Workflow Breakdown */}
         <div className="about-workflow-grid">
           <div className="about-card">
