@@ -46,7 +46,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jo
               <AppLogo size={40} className="brand-logo-img" />
             </div>
             <div>
-              <div style={{ lineHeight: 1.1, fontSize: '1.05rem', fontWeight: 800 }}>JobMatch</div>
+              <div style={{ lineHeight: 1.1, fontSize: '1.05rem', fontWeight: 800 }}>JobRecommender</div>
               <span style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>
                 AI Career Assistant
               </span>

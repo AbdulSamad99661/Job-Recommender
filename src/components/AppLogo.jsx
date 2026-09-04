@@ -4,7 +4,7 @@ export default function AppLogo({ size = 40, className = '' }) {
   return (
     <img
       src="/favicon.png"
-      alt="JobMatch logo"
+      alt="JobRecommender logo"
       className={`app-logo ${className}`.trim()}
       width={size}
       height={size}

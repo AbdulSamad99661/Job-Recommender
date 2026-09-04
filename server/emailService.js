@@ -46,7 +46,7 @@ export function isEmailConfigured() {
 
 function getFromIdentity() {
   return {
-    fromName: process.env.EMAIL_FROM_NAME || process.env.SMTP_FROM_NAME || 'JobMatch',
+    fromName: process.env.EMAIL_FROM_NAME || process.env.SMTP_FROM_NAME || 'JobRecommender',
     fromEmail: process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER,
   };
 }
@@ -140,7 +140,7 @@ export function buildSavedJobEmail({ recipientName, job, status = 'Saved' }) {
     minute: '2-digit',
   });
 
-  const subject = `Saved: ${title} at ${company} — JobMatch`;
+  const subject = `Saved: ${title} at ${company} — JobRecommender`;
 
   const skillsHtml = skills.length
     ? skills.map((s) => `<span style="display:inline-block;background:#EEF2FF;color:#4338CA;padding:4px 10px;border-radius:999px;font-size:12px;margin:0 6px 6px 0;">${escapeHtml(s)}</span>`).join('')
@@ -160,7 +160,7 @@ export function buildSavedJobEmail({ recipientName, job, status = 'Saved' }) {
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,0.08);">
           <tr>
             <td style="background:linear-gradient(135deg,#4F46E5 0%,#06B6D4 100%);padding:28px 32px;">
-              <div style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.85);">JobMatch</div>
+              <div style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.85);">JobRecommender</div>
               <h1 style="margin:10px 0 0;font-size:28px;line-height:1.2;color:#FFFFFF;">Job saved to your workspace</h1>
             </td>
           </tr>
@@ -201,14 +201,14 @@ export function buildSavedJobEmail({ recipientName, job, status = 'Saved' }) {
               ` : ''}
 
               <p style="margin:0;font-size:14px;line-height:1.6;color:#64748B;">
-                Track this application in JobMatch under <strong>Saved Jobs</strong>. Update the status to Applied, Interview, Offer, or Rejected as you progress.
+                Track this application in JobRecommender under <strong>Saved Jobs</strong>. Update the status to Applied, Interview, Offer, or Rejected as you progress.
               </p>
             </td>
           </tr>
           <tr>
             <td style="padding:20px 32px;background:#F8FAFC;border-top:1px solid #E2E8F0;">
               <p style="margin:0;font-size:12px;line-height:1.5;color:#94A3B8;text-align:center;">
-                JobMatch AI Career Assistant · This email was sent because you saved a job while signed in.
+                JobRecommender AI Career Assistant · This email was sent because you saved a job while signed in.
               </p>
             </td>
           </tr>
@@ -222,7 +222,7 @@ export function buildSavedJobEmail({ recipientName, job, status = 'Saved' }) {
   const text = [
     `Hi ${recipientName || 'there'},`,
     '',
-    `You saved a job on JobMatch:`,
+    `You saved a job on JobRecommender:`,
     `${title} at ${company}`,
     location,
     matchScore != null ? `${matchScore}% match` : '',

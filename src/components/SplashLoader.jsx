@@ -52,7 +52,7 @@ export default function SplashLoader({ onComplete }) {
 
       <div style={{ textAlign: 'center', marginTop: '12px' }}>
         <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>
-          Job Recommender
+          JobRecommender
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
           <Sparkles size={16} color="#0EA5E9" />

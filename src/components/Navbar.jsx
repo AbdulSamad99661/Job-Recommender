@@ -44,7 +44,7 @@ export default function Navbar({
         </button>
         <AppLogo size={36} className="navbar-logo" />
         <div className="navbar-page-title">
-          <h2>{PAGE_TITLES[activeTab] || 'Job Recommender'}</h2>
+          <h2>{PAGE_TITLES[activeTab] || 'JobRecommender'}</h2>
           <p>AI-powered resume matching</p>
         </div>
       </div>
