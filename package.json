@@ -1,7 +1,8 @@
 {
-  "name": "project-2026",
+  "name": "job-recommender",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "JobRecommender — AI career assistant with resume matching, Firebase auth, saved jobs, and live job search.",
   "type": "module",
   "scripts": {
     "dev": "vite",

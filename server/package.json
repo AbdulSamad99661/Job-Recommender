@@ -1,7 +1,7 @@
 {
   "name": "job-recommender-backend",
   "version": "1.0.0",
-  "description": "Node.js Express server connecting React UI with n8n 2-Agent workflow for PDF Parsing and Job Matching",
+  "description": "Express API for JobRecommender — resume parsing, job matching, Firebase auth verify, and saved-job email notifications.",
   "main": "index.js",
   "type": "module",
   "engines": {
