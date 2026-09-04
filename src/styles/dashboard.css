@@ -54,23 +54,62 @@
 }
 
 .splash-logo-box {
-  width: 84px;
-  height: 84px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #6366F1, #0EA5E9);
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 35px rgba(99, 102, 241, 0.6);
   position: relative;
+  overflow: hidden;
+  padding: 8px;
 }
 
 .splash-ring {
   position: absolute;
   inset: -12px;
-  border-radius: 26px;
+  border-radius: 50%;
   border: 2px dashed rgba(14, 165, 233, 0.5);
   animation: spinSlow 10s linear infinite;
+}
+
+.app-logo {
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.splash-logo-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.navbar-logo {
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 3px;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+  flex-shrink: 0;
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  border-radius: calc(var(--radius-md) - 2px);
 }
 
 /* Sidebar Styling & Mobile Drawer */
@@ -102,18 +141,6 @@
   font-weight: 800;
   font-size: 1.05rem;
   color: var(--text-main);
-}
-
-.brand-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
 .sidebar-nav {

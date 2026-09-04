@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Bot, Sparkles, Cpu } from 'lucide-react';
+import { Sparkles, Cpu } from 'lucide-react';
+import AppLogo from './AppLogo';
 
 export default function SplashLoader({ onComplete }) {
   const [loadingText, setLoadingText] = useState('Initializing AI Engine...');
@@ -46,7 +47,7 @@ export default function SplashLoader({ onComplete }) {
     <div className={`splash-overlay ${fadeOut ? 'fade-out' : ''}`}>
       <div className="splash-logo-box animate-pulse-glow">
         <div className="splash-ring"></div>
-        <Bot size={42} color="#FFFFFF" />
+        <AppLogo size={72} className="splash-logo-img" />
       </div>
 
       <div style={{ textAlign: 'center', marginTop: '12px' }}>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import AppLogo from './AppLogo';
 import {
   Home,
   UploadCloud,
@@ -7,7 +8,6 @@ import {
   Search,
   UserCheck,
   Info,
-  Bot,
   X,
   Sparkles,
   Bookmark,
@@ -43,7 +43,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, jo
         <div className="sidebar-header">
           <div className="brand-title">
             <div className="brand-icon">
-              <Bot size={22} color="#FFF" />
+              <AppLogo size={40} className="brand-logo-img" />
             </div>
             <div>
               <div style={{ lineHeight: 1.1, fontSize: '1.05rem', fontWeight: 800 }}>JobMatch</div>
