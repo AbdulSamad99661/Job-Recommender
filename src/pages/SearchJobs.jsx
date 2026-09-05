@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import JobCard from '../components/JobCard';
 import SkeletonJobCard from '../components/SkeletonJobCard';
 import ErrorBanner from '../components/ErrorBanner';
@@ -16,7 +16,6 @@ import {
 import {
   PRIORITY_LOCATIONS,
   OTHER_COUNTRIES,
-  DEFAULT_SEARCH_LOCATION,
   OTHER_COUNTRY_IDS,
 } from '../data/searchCountries';
 
@@ -27,15 +26,24 @@ const DATA_SOURCE_LABELS = {
   openai_generated: 'AI-generated (no live listings found)',
 };
 
-export default function SearchJobs({ onNavigateTab }) {
+export default function SearchJobs({
+  onNavigateTab,
+  jobs,
+  setJobs,
+  skill,
+  setSkill,
+  location,
+  setLocation,
+  dataSource,
+  setDataSource,
+  lastSearch,
+  setLastSearch,
+  error,
+  setError,
+  isLoading,
+  setIsLoading,
+}) {
   const { logHistory } = useAuth();
-  const [skill, setSkill] = useState('');
-  const [location, setLocation] = useState(DEFAULT_SEARCH_LOCATION);
-  const [jobs, setJobs] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [dataSource, setDataSource] = useState(null);
-  const [lastSearch, setLastSearch] = useState(null);
 
   const handleSearch = async (e) => {
     e?.preventDefault();

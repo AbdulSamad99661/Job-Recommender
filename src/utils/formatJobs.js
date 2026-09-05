@@ -1,4 +1,5 @@
 import { processedJobMatchesLocation } from '../data/locationUtils';
+import { formatJobPostedTime } from './formatPostedTime';
 
 export function formatJobsFromResponse(response, location, roleOrSkill = 'Software Engineer') {
   if (!response?.jobs?.length) return [];
@@ -12,7 +13,9 @@ export function formatJobsFromResponse(response, location, roleOrSkill = 'Softwa
       location: j.location || location,
       type: j.is_remote ? 'Remote' : 'Full-time',
       salary: j.salary || 'Competitive Salary',
-      postedDate: j.posted_time_ago || j.posted_date || 'Recently',
+      postedDate: formatJobPostedTime(j),
+      posted_date: j.posted_date,
+      posted_time_ago: j.posted_time_ago,
       matchScore: typeof j.match_score === 'number' ? j.match_score : (typeof j.matchScore === 'number' ? j.matchScore : 50),
       rationale: j.explanation?.why_matched || j.whyMatched || `Skill match evaluation for ${location}.`,
       matchedSkills: j.explanation?.matching_skills || j.matchedSkills || [],

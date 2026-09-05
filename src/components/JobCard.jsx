@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SkillBadge from './SkillBadge';
 import { useAuth } from '../context/AuthContext';
 import { buildJobDocId } from '../services/userService';
+import { formatJobPostedTime } from '../utils/formatPostedTime';
 import {
   Sparkles,
   MapPin,
@@ -73,7 +74,7 @@ export default function JobCard({ job, onNavigateTab }) {
   };
 
   const matchScore = job.matchScore || job.match_score || 88;
-  const postedTime = job.postedDate || job.posted_time_ago || job.posted_date || 'Posted recently';
+  const postedTime = formatJobPostedTime(job);
   const matchedList = job.matchedSkills || job.matched_skills || job.explanation?.matching_skills || ['React', 'JavaScript', 'Node.js'];
   const missingList = job.missingSkills || job.missing_skills || job.explanation?.missing_skills || [];
   const whyRationale = job.rationale || job.explanation?.why_matched || `Candidate CV skills directly match requirements for ${job.title} at ${job.company}.`;

@@ -16,6 +16,7 @@ import SavedJobs from './pages/SavedJobs';
 import HistoryPage from './pages/History';
 
 import { SAMPLE_RESUMES } from './data/mockResume';
+import { DEFAULT_SEARCH_LOCATION } from './data/searchCountries';
 import { getJobRecommendations, checkBackendHealth, ApiError } from './services/api';
 import { formatJobsFromResponse } from './utils/formatJobs';
 
@@ -39,6 +40,14 @@ export default function App() {
   const [matchWarnings, setMatchWarnings] = useState([]);
   const [backendConfig, setBackendConfig] = useState(null);
   const [dataSource, setDataSource] = useState(null);
+
+  const [skillSearchJobs, setSkillSearchJobs] = useState([]);
+  const [skillSearchSkill, setSkillSearchSkill] = useState('');
+  const [skillSearchLocation, setSkillSearchLocation] = useState(DEFAULT_SEARCH_LOCATION);
+  const [skillSearchDataSource, setSkillSearchDataSource] = useState(null);
+  const [skillSearchLastQuery, setSkillSearchLastQuery] = useState(null);
+  const [skillSearchError, setSkillSearchError] = useState(null);
+  const [isSkillSearchLoading, setIsSkillSearchLoading] = useState(false);
 
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return 'dark';
@@ -247,7 +256,23 @@ export default function App() {
           )}
 
           {activeTab === 'search' && (
-            <SearchJobs onNavigateTab={navigateTab} />
+            <SearchJobs
+              onNavigateTab={navigateTab}
+              jobs={skillSearchJobs}
+              setJobs={setSkillSearchJobs}
+              skill={skillSearchSkill}
+              setSkill={setSkillSearchSkill}
+              location={skillSearchLocation}
+              setLocation={setSkillSearchLocation}
+              dataSource={skillSearchDataSource}
+              setDataSource={setSkillSearchDataSource}
+              lastSearch={skillSearchLastQuery}
+              setLastSearch={setSkillSearchLastQuery}
+              error={skillSearchError}
+              setError={setSkillSearchError}
+              isLoading={isSkillSearchLoading}
+              setIsLoading={setIsSkillSearchLoading}
+            />
           )}
 
           {activeTab === 'saved' && (
