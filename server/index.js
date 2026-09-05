@@ -83,6 +83,121 @@ function buildSetupHints(config) {
 const MIN_MATCH_SCORE = 30;
 const MAX_JOBS_RETURNED = 20;
 
+/**
+ * Estimate total years of professional experience from a parsed resume profile.
+ */
+function parseExperienceYears(profile) {
+  if (!profile) return null;
+
+  const level = profile.experienceLevel || '';
+  const levelMatch = level.match(/(\d+(?:\.\d+)?)\s*(?:\+?\s*)?(?:years?|yrs?)/i);
+  if (levelMatch) return parseFloat(levelMatch[1]);
+
+  const summary = profile.summary || '';
+  const summaryMatch = summary.match(/(\d+(?:\.\d+)?)\s*(?:\+?\s*)?(?:years?|yrs?)\s+(?:of\s+)?experience/i);
+  if (summaryMatch) return parseFloat(summaryMatch[1]);
+
+  if (Array.isArray(profile.experience) && profile.experience.length > 0) {
+    let totalMonths = 0;
+    for (const exp of profile.experience) {
+      const period = exp.period || '';
+      const present = /present|current|now/i.test(period);
+      const range = period.match(/(\d{4})\s*[-–—to]+\s*(\d{4}|present|current|now)/i);
+      if (range) {
+        const start = parseInt(range[1], 10);
+        const end = present || /present|current|now/i.test(range[2])
+          ? new Date().getFullYear()
+          : parseInt(range[2], 10);
+        if (!Number.isNaN(start) && !Number.isNaN(end)) {
+          totalMonths += Math.max(0, (end - start) * 12);
+          continue;
+        }
+      }
+      const yearsInPeriod = period.match(/(\d+(?:\.\d+)?)\s*(?:years?|yrs?)/i);
+      if (yearsInPeriod) totalMonths += parseFloat(yearsInPeriod[1]) * 12;
+    }
+    if (totalMonths > 0) return Math.round((totalMonths / 12) * 10) / 10;
+  }
+
+  if (/entry\s*level|fresh\s*graduate|graduate|intern|fresher|no\s*experience/i.test(level)) return 0;
+  if (/junior|\b1\s*year/i.test(level)) return 1;
+
+  const title = profile.title || profile.targetRole || '';
+  if (/\bjunior\b|\bassociate\b|\bentry\b|\bintern\b|\bgraduate\b|\bfresher\b/i.test(title)) return 1;
+  if (/\b(senior|sr\.?|lead|principal|architect|staff)\b/i.test(title)) return 5;
+
+  return null;
+}
+
+function getJobRequirementsFilter(experienceYears) {
+  if (experienceYears == null) return null;
+  if (experienceYears <= 1) {
+    return 'under_3_years_experience,no_experience';
+  }
+  if (experienceYears <= 3) {
+    return 'under_3_years_experience';
+  }
+  return null;
+}
+
+function buildExperienceAwareQuery(baseQuery, experienceYears) {
+  const query = baseQuery.trim();
+  if (experienceYears == null || experienceYears > 3) return query;
+
+  if (/entry|junior|graduate|associate|fresher|0-2|1 year|intern/i.test(query)) {
+    return query;
+  }
+
+  if (experienceYears <= 1) {
+    return `${query} entry level junior 0-2 years`;
+  }
+
+  return `${query} junior mid level`;
+}
+
+function extractRequiredYearsFromJob(job) {
+  const text = `${job.job_title || ''} ${job.job_description || ''}`.toLowerCase();
+  const patterns = [
+    /(\d+)\+?\s*(?:\+?\s*)?(?:years?|yrs?)\s+(?:of\s+)?(?:experience|exp\.?)/gi,
+    /minimum\s+(?:of\s+)?(\d+)\s*(?:\+?\s*)?(?:years?|yrs?)/gi,
+    /at least\s+(\d+)\s*(?:\+?\s*)?(?:years?|yrs?)/gi,
+    /(\d+)\s*(?:\+?\s*)?(?:years?|yrs?)\s+(?:minimum|min\.?)/gi,
+  ];
+
+  let maxRequired = 0;
+  for (const pattern of patterns) {
+    let match = pattern.exec(text);
+    while (match) {
+      const years = parseInt(match[1], 10);
+      if (!Number.isNaN(years)) maxRequired = Math.max(maxRequired, years);
+      match = pattern.exec(text);
+    }
+  }
+
+  return maxRequired || null;
+}
+
+function isSeniorJobTitle(title = '') {
+  return /\b(senior|sr\.?|lead|principal|architect|staff|head of|director|manager|vp|chief)\b/i.test(title);
+}
+
+function filterJobsByCandidateExperience(jobs, experienceYears) {
+  if (experienceYears == null) return jobs;
+
+  const maxRequiredYears = experienceYears <= 1 ? 2 : experienceYears <= 3 ? 4 : 999;
+
+  return jobs.filter((job) => {
+    if (experienceYears <= 2 && isSeniorJobTitle(job.job_title || '')) {
+      return false;
+    }
+
+    const requiredYears = extractRequiredYearsFromJob(job);
+    if (requiredYears == null) return true;
+
+    return requiredYears <= maxRequiredYears;
+  });
+}
+
 function filterJobsByMinScore(jobs, minScore = MIN_MATCH_SCORE) {
   return jobs
     .filter((job) => {
@@ -834,8 +949,11 @@ function extractAndMatchJobSkills(job, candidateSkills) {
 function buildTargetedSearchQuery(profile, targetLocation) {
   const cleanTitle = profile.title.replace(/[^a-zA-Z0-9\s]/g, '').trim();
   const region = SEARCH_REGION_ALIASES[targetLocation] || targetLocation;
-  if (targetLocation === 'Remote') return `${cleanTitle} remote jobs`;
-  return `${cleanTitle} jobs in ${region}`;
+  const experienceYears = parseExperienceYears(profile);
+  let query;
+  if (targetLocation === 'Remote') query = `${cleanTitle} remote jobs`;
+  else query = `${cleanTitle} jobs in ${region}`;
+  return buildExperienceAwareQuery(query, experienceYears);
 }
 
 const ALLOWED_SEARCH_LOCATIONS = SEARCH_COUNTRY_IDS;
@@ -848,7 +966,7 @@ const SEARCH_REGION_ALIASES = {
   Remote: 'Remote worldwide',
 };
 
-function buildJSearchParams(query, location) {
+function buildJSearchParams(query, location, options = {}) {
   const params = { query, page: '1', num_pages: '2' };
   const iso = getLocationIsoCode(location);
 
@@ -858,14 +976,24 @@ function buildJSearchParams(query, location) {
     params.country = iso;
   }
 
+  if (options.jobRequirements) {
+    params.job_requirements = options.jobRequirements;
+  }
+
+  if (options.datePosted) {
+    params.date_posted = options.datePosted;
+  }
+
   return params;
 }
 
-function buildSkillSearchQuery(skill, location) {
+function buildSkillSearchQuery(skill, location, experienceYears = 1) {
   const cleanSkill = skill.replace(/[^a-zA-Z0-9\s+#.]/g, '').trim();
   const region = SEARCH_REGION_ALIASES[location] || location;
-  if (location === 'Remote') return `${cleanSkill} remote jobs`;
-  return `${cleanSkill} jobs in ${region}`;
+  let query;
+  if (location === 'Remote') query = `${cleanSkill} remote jobs`;
+  else query = `${cleanSkill} jobs in ${region}`;
+  return buildExperienceAwareQuery(query, experienceYears);
 }
 
 function buildProfileFromSkillInput(skill, location) {
@@ -888,41 +1016,69 @@ function buildProfileFromSkillInput(skill, location) {
   };
 }
 
-async function fetchRapidApiJobs(searchQuery, location, config) {
+async function fetchRapidApiJobs(searchQuery, location, config, experienceContext = null) {
   if (!config.has_rapidapi) return [];
+
+  const experienceYears = typeof experienceContext === 'number'
+    ? experienceContext
+    : parseExperienceYears(experienceContext) ??
+      (experienceContext && typeof experienceContext === 'object' ? 1 : null);
+
+  const adjustedQuery = buildExperienceAwareQuery(searchQuery, experienceYears);
+  const jobRequirements = getJobRequirementsFilter(experienceYears);
 
   const headers = {
     'x-rapidapi-key': process.env.RAPIDAPI_KEY,
     'x-rapidapi-host': 'jsearch.p.rapidapi.com',
   };
 
-  try {
-    console.log(`📡 Querying RapidAPI JSearch for: "${searchQuery}" (${location})...`);
-    let rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
-      params: buildJSearchParams(searchQuery, location),
+  const runSearch = async (query, requirements) => {
+    const params = buildJSearchParams(query, location, {
+      jobRequirements: requirements || undefined,
+      datePosted: 'month',
+    });
+    const response = await axios.get('https://jsearch.p.rapidapi.com/search', {
+      params,
       headers,
       timeout: 25000,
     });
+    return response.data?.data || [];
+  };
 
-    let rawJobs = rapidResponse.data?.data || [];
+  try {
+    console.log(
+      `📡 Querying RapidAPI JSearch for: "${adjustedQuery}" (${location})` +
+      (experienceYears != null ? ` · ~${experienceYears} yrs exp` : '') +
+      (jobRequirements ? ` · filter: ${jobRequirements}` : '') +
+      '...'
+    );
+
+    let rawJobs = await runSearch(adjustedQuery, jobRequirements);
+
+    if (rawJobs.length < 3 && jobRequirements) {
+      console.log('⚠️ Few entry-level results — widening search without strict experience filter...');
+      rawJobs = await runSearch(adjustedQuery, null);
+    }
 
     if (rawJobs.length === 0) {
       const region = SEARCH_REGION_ALIASES[location] || location;
-      const fallbackQuery = location === 'Remote'
-        ? 'remote software developer jobs'
-        : `Developer jobs in ${region}`;
+      const fallbackQuery = buildExperienceAwareQuery(
+        location === 'Remote' ? 'remote software developer jobs' : `Developer jobs in ${region}`,
+        experienceYears
+      );
       console.log(`⚠️ Primary query returned 0 jobs. Trying fallback: "${fallbackQuery}"...`);
-      rapidResponse = await axios.get('https://jsearch.p.rapidapi.com/search', {
-        params: buildJSearchParams(fallbackQuery, location),
-        headers,
-        timeout: 25000,
-      });
-      rawJobs = rapidResponse.data?.data || [];
+      rawJobs = await runSearch(fallbackQuery, jobRequirements);
+      if (rawJobs.length < 3) {
+        rawJobs = await runSearch(fallbackQuery, null);
+      }
     }
 
     const locationFiltered = filterRawJobsByLocation(rawJobs, location);
-    console.log(`📍 Location filter (${location}): ${rawJobs.length} → ${locationFiltered.length} jobs`);
-    return locationFiltered;
+    const experienceFiltered = filterJobsByCandidateExperience(locationFiltered, experienceYears);
+    console.log(
+      `📍 Filters (${location}): ${rawJobs.length} raw → ${locationFiltered.length} location → ${experienceFiltered.length} experience`
+    );
+    return experienceFiltered;
   } catch (rapidErr) {
     console.error('RapidAPI error:', rapidErr.response ? rapidErr.response.data : rapidErr.message);
     return [];
@@ -1073,6 +1229,7 @@ app.post('/api/recommend-jobs', upload.single('resume'), async (req, res) => {
       name: fullProfile.name,
       title: fullProfile.title,
       skillsCount: fullProfile.topSkills.length,
+      experienceYears: parseExperienceYears(fullProfile),
     });
 
     // 1. Try n8n workflow when configured (local or cloud webhook URL)
@@ -1106,7 +1263,7 @@ app.post('/api/recommend-jobs', upload.single('resume'), async (req, res) => {
     }
 
     // 2. Query Live Jobs from RapidAPI JSearch (LinkedIn, Indeed, Glassdoor, ZipRecruiter)
-    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config);
+    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config, fullProfile);
 
     // 3. Process & Format Live RapidAPI Jobs with REAL Posting Times & Dynamic Skill Overview Extraction
     let processedJobs = [];
@@ -1358,14 +1515,18 @@ app.post('/api/search-jobs', async (req, res) => {
       });
     }
 
+    const experienceYears = Number.isFinite(Number(req.body.experienceYears))
+      ? Math.max(0, Number(req.body.experienceYears))
+      : 1;
+
     const fullProfile = buildProfileFromSkillInput(skill, location);
-    const searchQuery = buildSkillSearchQuery(skill, location);
+    const searchQuery = buildSkillSearchQuery(skill, location, experienceYears);
     let dataSource = 'unknown';
     let processedJobs = [];
 
-    console.log(`🔍 Skill search: "${skill}" in ${location} → query: "${searchQuery}"`);
+    console.log(`🔍 Skill search: "${skill}" in ${location} · ${experienceYears} yrs exp → query: "${searchQuery}"`);
 
-    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config);
+    const rawJobs = await fetchRapidApiJobs(searchQuery, location, config, experienceYears);
 
     if (rawJobs.length > 0) {
       const contextText = `Searching for ${skill} jobs in ${location}. Skills: ${fullProfile.topSkills.map((s) => s.name).join(', ')}`;

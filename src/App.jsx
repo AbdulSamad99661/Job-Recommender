@@ -48,6 +48,7 @@ export default function App() {
   const [skillSearchLastQuery, setSkillSearchLastQuery] = useState(null);
   const [skillSearchError, setSkillSearchError] = useState(null);
   const [isSkillSearchLoading, setIsSkillSearchLoading] = useState(false);
+  const [skillSearchExperienceYears, setSkillSearchExperienceYears] = useState(1);
 
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return 'dark';
@@ -272,6 +273,8 @@ export default function App() {
               setError={setSkillSearchError}
               isLoading={isSkillSearchLoading}
               setIsLoading={setIsSkillSearchLoading}
+              experienceYears={skillSearchExperienceYears}
+              setExperienceYears={setSkillSearchExperienceYears}
             />
           )}
 
