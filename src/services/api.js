@@ -132,16 +132,12 @@ export async function getJobRecommendations(pdfFile, location = 'Dubai', role = 
  * @param {string} skill
  * @param {string} location Country or city name from the search list
  */
-export async function searchJobsBySkill(skill, location = 'Dubai', experienceYears = 1) {
+export async function searchJobsBySkill(skill, location = 'Dubai') {
   try {
     const response = await fetch(`${API_BASE_URL}/search-jobs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        skill: skill.trim(),
-        location,
-        experienceYears: experienceYears === 'any' ? null : experienceYears,
-      }),
+      body: JSON.stringify({ skill: skill.trim(), location }),
       signal: AbortSignal.timeout(IS_PRODUCTION ? 55000 : 90000),
     });
 

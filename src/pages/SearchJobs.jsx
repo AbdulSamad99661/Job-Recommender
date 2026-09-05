@@ -21,13 +21,6 @@ import {
 
 const QUICK_SKILLS = ['Python', 'React', 'Node.js', 'Data Analyst', 'Machine Learning', 'SQL', 'Java', 'DevOps'];
 
-const EXPERIENCE_OPTIONS = [
-  { value: 1, label: '0-1 year' },
-  { value: 2, label: '1-3 years' },
-  { value: 4, label: '3-5 years' },
-  { value: 'any', label: 'Any level' },
-];
-
 const DATA_SOURCE_LABELS = {
   rapidapi: 'Live listings via RapidAPI',
   openai_generated: 'AI-generated (no live listings found)',
@@ -49,8 +42,6 @@ export default function SearchJobs({
   setError,
   isLoading,
   setIsLoading,
-  experienceYears,
-  setExperienceYears,
 }) {
   const { logHistory } = useAuth();
 
@@ -66,7 +57,7 @@ export default function SearchJobs({
     setError(null);
 
     try {
-      const response = await searchJobsBySkill(query, location, experienceYears);
+      const response = await searchJobsBySkill(query, location);
       const formatted = formatJobsFromResponse(response, location, query);
       setJobs(formatted);
       setDataSource(response.data_source || null);
@@ -165,23 +156,6 @@ export default function SearchJobs({
                 </option>
               ))}
             </select>
-          </div>
-        </div>
-
-        <div className="search-jobs-locations">
-          <span className="search-jobs-label">Experience level</span>
-          <div className="search-location-pills">
-            {EXPERIENCE_OPTIONS.map((opt) => (
-              <button
-                key={opt.label}
-                type="button"
-                className={`location-pill ${experienceYears === opt.value ? 'active' : ''}`}
-                onClick={() => setExperienceYears(opt.value)}
-                disabled={isLoading}
-              >
-                {opt.label}
-              </button>
-            ))}
           </div>
         </div>
 
